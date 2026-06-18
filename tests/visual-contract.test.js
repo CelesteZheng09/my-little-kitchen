@@ -28,6 +28,8 @@ assert.ok(!app.includes('scribble'), 'home collage should not render extra handw
 assert.ok(!css.includes('tagmini'), 'home collage should not style dish mini tags');
 assert.ok(!app.includes('cols = 4'), 'fridge ingredients should not use a regular 4-column grid');
 assert.ok(!app.includes("label: '教程'"), 'tutorial should not be a bottom tab');
+assert.ok(!html.includes('fridgeHint'), 'fridge should not render the middle hint text');
+assert.ok(!app.includes('fridgeHint'), 'fridge should not update removed middle hint text');
 includes('app.js', app, 'class="wcard ghost" data-nav="tutorial"');
 
 for (const file of ['db.js', 'match.js', 'parser.js', 'app.js']) {

@@ -176,8 +176,6 @@ input,textarea{font-family:inherit;border:none;outline:none;background:none;colo
 .canvas .fe:nth-of-type(8){animation-duration:3.7s;animation-delay:-2.1s;}
 @keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
 .canvas .add{position:absolute;width:48px;height:48px;border-radius:50%;background:var(--card);box-shadow:var(--soft);display:flex;align-items:center;justify-content:center;font-size:23px;color:var(--gray2);}
-.hint{text-align:center;font-size:15px;font-weight:600;color:var(--gray);font-family:var(--kai);margin:2px 30px 0;line-height:1.5;}
-.hint b{color:var(--ink);font-weight:800;}
 .quickrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:14px 22px 4px;}
 .quickrow .q{font-size:12px;font-family:var(--kai);background:var(--chip);color:var(--gray);border-radius:16px;padding:7px 13px;font-weight:600;}
 .quickrow .q.on{background:var(--ink);color:#fff;}

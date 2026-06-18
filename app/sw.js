@@ -1,9 +1,9 @@
 /* 我的小厨房 · Service Worker（离线缓存外壳 + 本地素材） */
-const CACHE = 'my-kitchen-v8';
+const CACHE = 'my-kitchen-v9';
 const ASSETS = [
   './', './index.html', './manifest.json',
-  './css/app.css?v=20260618-v6f',
-  './js/db.js?v=20260618-v6f', './js/match.js?v=20260618-v6f', './js/parser.js?v=20260618-v6f', './js/app.js?v=20260618-v6f',
+  './css/app.css?v=20260618-v6g',
+  './js/db.js?v=20260618-v6g', './js/match.js?v=20260618-v6g', './js/parser.js?v=20260618-v6g', './js/app.js?v=20260618-v6g',
   './icons/cat-staple.jpg', './icons/cat-meat.jpg', './icons/cat-veg.jpg',
   './icons/cat-seafood.jpg', './icons/cat-soup.jpg', './icons/cat-cold.jpg',
   './icons/dish-fanqie.jpg', './icons/dish-hongshao.jpg', './icons/dish-xilanhua.jpg', './icons/dish-zicai.jpg',

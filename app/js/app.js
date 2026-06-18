@@ -258,7 +258,6 @@
   function updateFridgeCounts() {
     const n = state.fridgeSel.size;
     $('#goCount').textContent = '已选 ' + n + ' 样 →';
-    $('#fridgeHint').innerHTML = n ? ('已选 <b>' + n + '</b> 样食材<br>点下面「找找能做什么」') : '还没选食材<br>点上面的食材或 ＋ 添加';
   }
   async function findDish() {
     if (!state.fridgeSel.size) { toast('先选几样食材吧～'); return; }
