@@ -35,6 +35,14 @@
     '料酒': '🍶', '生抽': '🍶', '老抽': '🍶', '豆腐': '◻️', '虾': '🦐',
     '鱼': '🐟', '盐': '🧂'
   };
+  const ING_ICON = {
+    '番茄': 'icons/ing-tomato.jpg', '西红柿': 'icons/ing-tomato.jpg',
+    '鸡蛋': 'icons/ing-egg.jpg',
+    '青菜': 'icons/ing-veg.jpg', '西兰花': 'icons/ing-veg.jpg', '紫菜': 'icons/ing-veg.jpg',
+    '蒜': 'icons/ing-garlic.jpg', '大蒜': 'icons/ing-garlic.jpg',
+    '葱': 'icons/ing-scallion.jpg',
+    '五花肉': 'icons/ing-pork.jpg', '猪肉': 'icons/ing-pork.jpg', '排骨': 'icons/ing-pork.jpg'
+  };
 
   // ---------- 工具 ----------
   function toast(msg) {
@@ -47,6 +55,7 @@
     return a;
   }
   function esc(s) { return (s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function ingredientIconFor(name) { return ING_ICON[name] || ''; }
   function fileToDataURL(file) {
     return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
   }
@@ -221,7 +230,8 @@
     $('#fridgeCanvas').innerHTML = '<div class="fridgeWorld" style="width:' + layout.width + 'px;height:' + layout.height + 'px">' + ings.map((ing, i) => {
       const p = layout.points[i];
       const sel = state.fridgeSel.has(ing.name) ? ' sel' : '';
-      const icon = ing.icon ? '<img src="' + esc(ing.icon) + '">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🧂</div>';
+      const iconSrc = ing.icon || ingredientIconFor(ing.name);
+      const icon = iconSrc ? '<img src="' + esc(iconSrc) + '">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">' + esc(ING_EMOJI[ing.name] || '🥢') + '</div>';
       return '<span class="fe' + sel + '" data-ing="' + esc(ing.name) + '" style="top:' + p.top + 'px;left:' + p.left + 'px">' +
         icon + '<span class="nm">' + esc(ing.name) + '</span></span>';
     }).join('') + '</div>';
@@ -369,8 +379,10 @@
     const savePendingIngredient = async () => {
       const name = $('#newIng').value.trim();
       if (!name) return false;
+      const icon = ingredientIconFor(name);
       const exist = (await DB.all('ingredients')).find((x) => x.name === name);
-      if (!exist) await DB.put('ingredients', { id: DB.uid(), name, icon: '' });
+      if (!exist) await DB.put('ingredients', { id: DB.uid(), name, icon });
+      else if (!exist.icon && icon) await DB.put('ingredients', { ...exist, icon });
       state.fridgeSel.add(name);
       $('#newIng').value = '';
       return true;

@@ -25,6 +25,8 @@ includes('app.js', app, 'class="fridgeWorld"');
 includes('app.js', app, "'饮料': 'icons/cat-drink.jpg'");
 includes('app.js', app, "DB.clear('ingredients')");
 includes('app.js', app, 'savePendingIngredient');
+includes('app.js', app, 'ingredientIconFor');
+includes('app.js', app, "'青菜': 'icons/ing-veg.jpg'");
 includes('app.css', css, '.canvas{position:relative;height:330px;margin:6px 12px 0;flex:none;overflow:auto');
 includes('app.css', css, '.inputbar{width:calc(100% - 32px)');
 
