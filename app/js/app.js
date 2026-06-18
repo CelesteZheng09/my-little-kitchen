@@ -123,19 +123,15 @@
     const cards = list.map((d, i) => {
       const slot = (i % 5) + 1;
       const row = Math.floor(i / 5);
-      const tag = d.tags && d.tags.length ? d.tags[0] : '';
       const cover = d.cover
         ? '<img src="' + esc(d.cover) + '" alt="' + esc(d.name) + '">'
         : '<div class="phdish">🍽️</div>';
       return '<button class="cut d' + slot + '" style="--row-offset:' + (row * 500) + 'px" data-nav="dish" data-id="' + esc(d.id) + '">' +
         '<span class="pic">' + cover + '</span>' +
         '<span class="lbl">' + esc(d.name) + '</span>' +
-        (tag ? '<span class="tagmini">' + esc(tag) + ' ✦</span>' : '') +
         '</button>';
     }).join('');
-    return cards +
-      '<span class="scribble s1">最近常做~</span>' +
-      '<span class="scribble s2">超下饭！</span>';
+    return cards;
   }
 
   // ---------- ② 详情 ----------

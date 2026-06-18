@@ -57,7 +57,6 @@ input,textarea{font-family:inherit;border:none;outline:none;background:none;colo
 .cut img,.cut .phdish{display:block;object-fit:cover;border-radius:inherit;}
 .cut .phdish{background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--gray2);}
 .cut .lbl{font-family:var(--hand);font-size:17px;color:#3a332a;position:absolute;white-space:nowrap;}
-.cut .tagmini{font-family:var(--kai);font-size:11px;color:var(--gray);position:absolute;white-space:nowrap;}
 .cut.d1{top:calc(8px + var(--row-offset));left:12px;transform:rotate(-4deg);}
 .cut.d1 .pic{border-radius:58% 42% 60% 40% / 56% 48% 52% 44%;}
 .cut.d1 img{width:122px;height:122px;}
@@ -68,7 +67,6 @@ input,textarea{font-family:inherit;border:none;outline:none;background:none;colo
 .cut.d2 img{width:132px;height:132px;}
 .cut.d2 .phdish{width:132px;height:132px;}
 .cut.d2 .lbl{right:8px;bottom:-18px;transform:rotate(4deg);}
-.cut.d2 .tagmini{right:12px;bottom:-34px;transform:rotate(4deg);}
 .cut.d3{top:calc(228px + var(--row-offset));left:4px;transform:rotate(3deg);}
 .cut.d3 .pic{border-radius:54% 46% 52% 48% / 60% 40% 60% 40%;}
 .cut.d3 img{width:115px;height:115px;}
@@ -84,9 +82,6 @@ input,textarea{font-family:inherit;border:none;outline:none;background:none;colo
 .cut.d5 img{width:112px;height:112px;}
 .cut.d5 .phdish{width:112px;height:112px;}
 .cut.d5 .lbl{left:0;bottom:-18px;transform:rotate(3deg);font-size:15px;}
-.scribble{position:absolute;font-family:var(--hand);font-size:14px;color:#c07a4e;pointer-events:none;}
-.s1{top:196px;right:44px;transform:rotate(-10deg);}
-.s2{top:398px;right:54px;transform:rotate(8deg);}
 .collage-empty{text-align:center;color:var(--gray);font-family:var(--kai);padding:60px 30px;font-size:14px;line-height:1.8;}
 
 /* 网格备用展示（更稳的列表式，作为默认布局） */

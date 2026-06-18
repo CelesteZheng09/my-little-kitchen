@@ -17,11 +17,13 @@ includes('index.html', html, 'id="homeCollage"');
 includes('index.html', html, 'class="collage"');
 includes('app.js', app, 'renderHomeCollage');
 includes('app.js', app, 'class="cut d');
-includes('app.js', app, 'class="scribble');
 includes('app.css', css, '.cut.d1');
 includes('app.css', css, '.cut.d5');
-includes('app.css', css, '.tagmini');
 includes('app.css', css, '.wishhead');
+
+assert.ok(!app.includes('tagmini'), 'home collage should not render dish mini tags');
+assert.ok(!app.includes('scribble'), 'home collage should not render extra handwritten mini labels');
+assert.ok(!css.includes('tagmini'), 'home collage should not style dish mini tags');
 
 for (const file of ['db.js', 'match.js', 'parser.js', 'app.js']) {
   new Function(read(`app/js/${file}`));
