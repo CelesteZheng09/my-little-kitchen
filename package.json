@@ -1,7 +1,7 @@
 {
   "scripts": {
     "test": "node tests/visual-contract.test.js",
-    "worker:dev": "npx wrangler dev",
-    "worker:deploy": "npx wrangler deploy"
+    "worker:dev": "npx --cache ./.npm-cache wrangler dev",
+    "worker:deploy": "npx --cache ./.npm-cache wrangler deploy"
   }
 }
