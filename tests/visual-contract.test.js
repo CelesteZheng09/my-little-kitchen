@@ -20,10 +20,12 @@ includes('app.js', app, 'class="cut d');
 includes('app.css', css, '.cut.d1');
 includes('app.css', css, '.cut.d5');
 includes('app.css', css, '.wishhead');
+includes('app.js', app, 'FRIDGE_ANCHORS');
 
 assert.ok(!app.includes('tagmini'), 'home collage should not render dish mini tags');
 assert.ok(!app.includes('scribble'), 'home collage should not render extra handwritten mini labels');
 assert.ok(!css.includes('tagmini'), 'home collage should not style dish mini tags');
+assert.ok(!app.includes('cols = 4'), 'fridge ingredients should not use a regular 4-column grid');
 
 for (const file of ['db.js', 'match.js', 'parser.js', 'app.js']) {
   new Function(read(`app/js/${file}`));

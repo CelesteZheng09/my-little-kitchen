@@ -218,27 +218,43 @@
   // ---------- ⑤ 冰箱 ----------
   async function renderFridge() {
     const ings = await DB.all('ingredients');
-    const positioned = layoutFloat(ings.length);
+    const positioned = layoutFloat(ings);
     $('#fridgeCanvas').innerHTML = ings.map((ing, i) => {
       const p = positioned[i];
       const sel = state.fridgeSel.has(ing.name) ? ' sel' : '';
       const icon = ing.icon ? '<img src="' + esc(ing.icon) + '">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🧂</div>';
-      return '<span class="fe' + sel + '" data-ing="' + esc(ing.name) + '" style="top:' + p.top + 'px;left:' + p.left + 'px">' +
+      return '<span class="fe' + sel + '" data-ing="' + esc(ing.name) + '" style="top:' + p.top + 'px;left:' + p.left + '">' +
         icon + '<span class="nm">' + esc(ing.name) + '</span></span>';
     }).join('');
     updateFridgeCounts();
     $('#resultArea').innerHTML = '';
   }
-  function layoutFloat(n) {
-    // 在画布内规则散布，避免重叠
-    const cols = 4, cw = 86, rh = 92, ox = 14, oy = 12;
-    const res = [];
-    for (let i = 0; i < n; i++) {
-      const r = Math.floor(i / cols), c = i % cols;
-      const jitter = (r % 2) * 18;
-      res.push({ left: ox + c * cw + jitter, top: oy + r * rh });
+  const FRIDGE_ANCHORS = [
+    { left: '4%', top: 18 }, { left: '31%', top: 4 }, { left: '58%', top: 24 },
+    { left: '77%', top: 62 }, { left: '15%', top: 120 }, { left: '48%', top: 104 },
+    { left: '72%', top: 146 }, { left: '2%', top: 224 }, { left: '33%', top: 204 },
+    { left: '60%', top: 238 }, { left: '82%', top: 218 }, { left: '46%', top: 270 }
+  ];
+
+  function layoutFloat(ings) {
+    const list = Array.isArray(ings) ? ings : [];
+    return list.map((ing, i) => {
+      if (i < FRIDGE_ANCHORS.length) return FRIDGE_ANCHORS[i];
+      const seed = hashString((ing && ing.name || '') + ':' + i);
+      return {
+        left: (4 + (seed % 76)) + '%',
+        top: 12 + ((seed >> 8) % 258)
+      };
+    });
+  }
+
+  function hashString(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
     }
-    return res;
+    return h >>> 0;
   }
   function updateFridgeCounts() {
     const n = state.fridgeSel.size;
