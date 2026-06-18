@@ -28,6 +28,14 @@
     '海鲜': 'icons/cat-seafood.jpg', '汤': 'icons/cat-soup.jpg', '凉菜沙拉': 'icons/cat-cold.jpg',
     '饮料': 'icons/cat-cold.jpg'
   };
+  const CAT_LABEL = { '肉': '肉肉', '凉菜沙拉': '凉菜' };
+  const ING_EMOJI = {
+    '番茄': '🍅', '西红柿': '🍅', '鸡蛋': '🥚', '青菜': '🥬', '西兰花': '🥦',
+    '蒜': '🧄', '大蒜': '🧄', '葱': '🧅', '姜': '🫚', '五花肉': '🥩',
+    '猪肉': '🥩', '排骨': '🍖', '紫菜': '🌿', '冰糖': '🟤', '醋': '🍶',
+    '料酒': '🍶', '生抽': '🍶', '老抽': '🍶', '豆腐': '◻️', '虾': '🦐',
+    '鱼': '🐟', '盐': '🧂'
+  };
 
   // ---------- 工具 ----------
   function toast(msg) {
@@ -47,6 +55,8 @@
     if (src) return '<img class="' + (cls || '') + '" src="' + esc(src) + '">';
     return '<div class="' + (cls || '') + '" style="display:flex;align-items:center;justify-content:center;background:var(--chip);font-size:26px">🍽️</div>';
   }
+  function catLabel(c) { return CAT_LABEL[c] || c || ''; }
+  function ingLabel(name) { return '<span class="em">' + esc(ING_EMOJI[name] || '🥢') + '</span>' + esc(name); }
 
   // ---------- 路由 ----------
   function go(view, param) {
@@ -84,7 +94,7 @@
     $('#caticons').innerHTML = cats.map((c) =>
       '<button class="ci' + (state.activeCat === c ? ' on' : '') + '" data-cat="' + esc(c) + '">' +
       '<span class="blob"><img src="' + (CAT_ICON[c] || '') + '"></span>' +
-      '<span class="lbl">' + esc(c) + '</span></button>').join('');
+      '<span class="lbl">' + esc(catLabel(c)) + '</span></button>').join('');
 
     // 列表：默认态（无选中）= 全部 + 随机；选中分类 = 过滤
     let list;
@@ -98,17 +108,34 @@
       list = state.homeOrder.map((id) => map[id]).filter(Boolean);
     }
 
-    const grid = $('#dishgrid');
+    const collage = $('#homeCollage');
     if (!list.length) {
-      grid.innerHTML = ''; $('#homeEmpty').style.display = 'block';
+      collage.innerHTML = ''; $('#homeEmpty').style.display = 'block';
     } else {
       $('#homeEmpty').style.display = 'none';
-      grid.innerHTML = list.map((d) =>
-        '<div class="dishcard" data-nav="dish" data-id="' + d.id + '">' +
-        coverImg(d.cover) +
-        '<div class="body"><div class="dn">' + esc(d.name) + '</div>' +
-        '<div class="mt">' + esc(d.category || '') + (d.tags && d.tags.length ? ' · ' + esc(d.tags[0]) : '') + '</div></div></div>').join('');
+      collage.innerHTML = renderHomeCollage(list);
+      const rows = Math.max(1, Math.ceil(list.length / 5));
+      collage.style.height = (530 + (rows - 1) * 500) + 'px';
     }
+  }
+
+  function renderHomeCollage(list) {
+    const cards = list.map((d, i) => {
+      const slot = (i % 5) + 1;
+      const row = Math.floor(i / 5);
+      const tag = d.tags && d.tags.length ? d.tags[0] : '';
+      const cover = d.cover
+        ? '<img src="' + esc(d.cover) + '" alt="' + esc(d.name) + '">'
+        : '<div class="phdish">🍽️</div>';
+      return '<button class="cut d' + slot + '" style="--row-offset:' + (row * 500) + 'px" data-nav="dish" data-id="' + esc(d.id) + '">' +
+        '<span class="pic">' + cover + '</span>' +
+        '<span class="lbl">' + esc(d.name) + '</span>' +
+        (tag ? '<span class="tagmini">' + esc(tag) + ' ✦</span>' : '') +
+        '</button>';
+    }).join('');
+    return cards +
+      '<span class="scribble s1">最近常做~</span>' +
+      '<span class="scribble s2">超下饭！</span>';
   }
 
   // ---------- ② 详情 ----------
@@ -121,11 +148,11 @@
     $('#dishBody').innerHTML =
       '<div class="dhero">' + coverImg(d.cover) + '</div>' +
       '<div class="dtitle"><div class="big">' + esc(d.name) + '</div>' +
-      '<div class="meta">' + esc(d.category || '') +
+      '<div class="meta">' + esc(catLabel(d.category || '')) +
       (d.tags && d.tags.length ? '<span class="dot">·</span>' + esc(d.tags[0]) : '') +
       (d.madeIt !== false ? '<span class="dot">·</span>会做啦 ✓' : '') + '</div></div>' +
       sec('🥢 用了这些食材', '<div class="ingchips">' +
-        (d.ingredients || []).map((i) => '<span class="ic2">' + esc(i) + '</span>').join('') + '</div>') +
+        (d.ingredients || []).map((i) => '<span class="ic2">' + ingLabel(i) + '</span>').join('') + '</div>') +
       sec('👩‍🍳 我的做法', '<div class="steps">' +
         (d.steps || []).map((s, i) => '<div class="stp"><div class="n">' + (i + 1) + '</div><div class="tx">' + esc(s) + '</div></div>').join('') + '</div>') +
       (tut ? sec('🔗 关联的教程', '<div class="linkcard" data-tutorial-id="' + esc(tut.id) + '"><div class="thumb">▶️</div>' +
@@ -165,7 +192,7 @@
   }
   function renderEditIngs() {
     $('#editIng').innerHTML = state.editIngs.map((t, i) =>
-      '<span class="tg">' + esc(t) + ' <span class="x" data-rming="' + i + '">×</span></span>').join('') +
+      '<span class="tg">' + ingLabel(t) + ' <span class="x" data-rming="' + i + '">×</span></span>').join('') +
       '<span class="addtg" data-act="addIng2">＋ 加食材</span>';
   }
   function renderEditSteps() {
@@ -443,6 +470,7 @@
     const fe = t.closest('.fe[data-ing]');
     if (fe) { const n = fe.dataset.ing; state.fridgeSel.has(n) ? state.fridgeSel.delete(n) : state.fridgeSel.add(n); fe.classList.toggle('sel'); updateFridgeCounts(); return; }
     if (t.closest('[data-act="addIng"]')) { openAddIngSheet(); return; }
+    if (t.closest('[data-act="clearFridge"]')) { state.fridgeSel.clear(); renderFridge(); return; }
     if (t.closest('[data-act="findDish"]')) { findDish(); return; }
 
     // 教程
@@ -463,7 +491,7 @@
 
   function showTutorialDetail(t) {
     openSheet('<h3>' + esc(t.title) + '</h3>' +
-      (t.ingredients && t.ingredients.length ? '<div class="ingchips" style="margin-bottom:12px">' + t.ingredients.map((i) => '<span class="ic2">' + esc(i) + '</span>').join('') + '</div>' : '') +
+      (t.ingredients && t.ingredients.length ? '<div class="ingchips" style="margin-bottom:12px">' + t.ingredients.map((i) => '<span class="ic2">' + ingLabel(i) + '</span>').join('') + '</div>' : '') +
       (t.steps && t.steps.length ? '<div class="steps" style="margin-bottom:14px">' + t.steps.map((s, i) => '<div class="stp"><div class="n">' + (i + 1) + '</div><div class="tx">' + esc(s) + '</div></div>').join('') + '</div>' : '<p style="color:var(--gray);font-family:var(--kai)">暂无解析内容</p>') +
       (t.link ? '<a class="confirm" href="' + esc(t.link) + '" target="_blank" style="display:block;text-decoration:none;margin-bottom:10px">打开原链接</a>' : '') +
       '<button class="del" id="tutDel" style="width:100%;border-radius:18px;padding:13px">删除这条教程</button>');
