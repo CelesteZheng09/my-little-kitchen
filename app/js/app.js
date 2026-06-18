@@ -19,8 +19,7 @@
   const TABS = [
     { view: 'home', ic: '🍳', label: '厨房' },
     { view: 'wish', ic: '📌', label: '想做的' },
-    { view: 'fridge', ic: '🧊', label: '冰箱' },
-    { view: 'tutorial', ic: '📚', label: '教程' }
+    { view: 'fridge', ic: '🧊', label: '冰箱' }
   ];
 
   const CAT_ICON = {
@@ -212,7 +211,7 @@
       '<div class="wcard" data-wish="' + w.id + '">' + coverImg(w.cover) +
       '<div class="info"><div class="dn">' + esc(w.name) + '</div><div class="meta">' + esc(w.source || '') + '</div></div>' +
       '<button class="star" data-wishdone="' + w.id + '" title="已做过，移入厨房">★</button></div>').join('') +
-      '<button class="wcard ghost" data-act="addWish">＋ 再添加一道想做的菜</button>';
+      '<button class="wcard ghost" data-nav="tutorial">＋ 再添加一道想做的菜</button>';
   }
 
   // ---------- ⑤ 冰箱 ----------

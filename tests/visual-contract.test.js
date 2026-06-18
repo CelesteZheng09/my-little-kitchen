@@ -27,6 +27,8 @@ assert.ok(!app.includes('tagmini'), 'home collage should not render dish mini ta
 assert.ok(!app.includes('scribble'), 'home collage should not render extra handwritten mini labels');
 assert.ok(!css.includes('tagmini'), 'home collage should not style dish mini tags');
 assert.ok(!app.includes('cols = 4'), 'fridge ingredients should not use a regular 4-column grid');
+assert.ok(!app.includes("label: '教程'"), 'tutorial should not be a bottom tab');
+includes('app.js', app, 'class="wcard ghost" data-nav="tutorial"');
 
 for (const file of ['db.js', 'match.js', 'parser.js', 'app.js']) {
   new Function(read(`app/js/${file}`));
