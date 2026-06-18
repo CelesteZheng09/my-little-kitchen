@@ -60,7 +60,7 @@
     return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
   }
   function coverImg(src, cls) {
-    if (src) return '<img class="' + (cls || '') + '" src="' + esc(src) + '">';
+    if (src) return '<img class="' + (cls || '') + '" src="' + esc(src) + '" loading="lazy" decoding="async">';
     return '<div class="' + (cls || '') + '" style="display:flex;align-items:center;justify-content:center;background:var(--chip);font-size:26px">🍽️</div>';
   }
   function catLabel(c) { return CAT_LABEL[c] || c || ''; }
@@ -101,7 +101,7 @@
     const cats = DB.CATEGORIES;
     $('#caticons').innerHTML = cats.map((c) =>
       '<button class="ci' + (state.activeCat === c ? ' on' : '') + '" data-cat="' + esc(c) + '">' +
-      '<span class="blob"><img src="' + (CAT_ICON[c] || '') + '"></span>' +
+      '<span class="blob"><img src="' + (CAT_ICON[c] || '') + '" decoding="async"></span>' +
       '<span class="lbl">' + esc(catLabel(c)) + '</span></button>').join('');
 
     // 列表：默认态（无选中）= 全部 + 随机；选中分类 = 过滤
@@ -132,7 +132,7 @@
       const slot = (i % 5) + 1;
       const row = Math.floor(i / 5);
       const cover = d.cover
-        ? '<img src="' + esc(d.cover) + '" alt="' + esc(d.name) + '">'
+        ? '<img src="' + esc(d.cover) + '" alt="' + esc(d.name) + '" loading="lazy" decoding="async">'
         : '<div class="phdish">🍽️</div>';
       return '<button class="cut d' + slot + '" style="--row-offset:' + (row * 500) + 'px" data-nav="dish" data-id="' + esc(d.id) + '">' +
         '<span class="pic">' + cover + '</span>' +
@@ -231,7 +231,7 @@
       const p = layout.points[i];
       const sel = state.fridgeSel.has(ing.name) ? ' sel' : '';
       const iconSrc = ing.icon || ingredientIconFor(ing.name);
-      const icon = iconSrc ? '<img src="' + esc(iconSrc) + '">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">' + esc(ING_EMOJI[ing.name] || '🥢') + '</div>';
+      const icon = iconSrc ? '<img src="' + esc(iconSrc) + '" loading="lazy" decoding="async">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">' + esc(ING_EMOJI[ing.name] || '🥢') + '</div>';
       return '<span class="fe' + sel + '" data-ing="' + esc(ing.name) + '" style="top:' + p.top + 'px;left:' + p.left + 'px">' +
         icon + '<span class="nm">' + esc(ing.name) + '</span></span>';
     }).join('') + '</div>';
