@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#fbfbfc">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="小厨房">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>我的小厨房</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ① 厨房首页 -->
+  <section class="view" data-view="home">
+    <div class="topbar">
+      <div class="ttl">我的小厨房</div>
+      <button class="iconbtn" data-act="reseed" title="重置示例">↺</button>
+    </div>
+    <div class="htitle">
+      <div class="big">我的小厨房<span class="muted">。</span><br><span class="muted" id="homeCount">已经会做 0 道</span></div>
+    </div>
+    <div class="caticons" id="caticons"></div>
+    <div class="scrollbody">
+      <div class="dishgrid" id="dishgrid"></div>
+      <div class="collage-empty" id="homeEmpty" style="display:none">还没有菜～<br>点右下角 ＋ 记下第一道会做的菜吧</div>
+    </div>
+    <button class="fab" data-nav="edit">＋</button>
+    <nav class="tabbar" data-tabbar></nav>
+  </section>
+
+  <!-- ② 菜品详情 -->
+  <section class="view" data-view="dish">
+    <div class="topbar">
+      <button class="iconbtn" data-back>‹</button>
+      <button class="iconbtn dots" data-act="editCurrent" title="编辑">✎</button>
+    </div>
+    <div class="scrollbody" id="dishBody"></div>
+    <nav class="tabbar" data-tabbar></nav>
+  </section>
+
+  <!-- ③ 记菜品 / 编辑 -->
+  <section class="view" data-view="edit">
+    <div class="topbar">
+      <button class="iconbtn" data-back>‹</button>
+      <div class="ttl" id="editTitle">记一道会做的菜</div>
+      <div style="width:38px"></div>
+    </div>
+    <div class="scrollbody">
+      <div class="form">
+        <label class="uploadbox" id="editUpload">
+          <input type="file" accept="image/*" hidden id="editCover">
+          <div class="ic">📷</div><div class="t">拍张照 / 传张图</div>
+        </label>
+        <div class="field"><div class="fl">菜名</div><input class="inp" id="editName" placeholder="例如：番茄炒蛋"></div>
+        <div class="field"><div class="fl">分类</div><div class="catpick" id="editCat"></div></div>
+        <div class="field"><div class="fl">用了哪些食材</div><div class="ingedit" id="editIng"></div></div>
+        <div class="field"><div class="fl">做法步骤</div><div class="stepedit" id="editSteps"></div>
+          <button class="addtg" data-act="addStep" style="margin-top:8px">＋ 加一步</button>
+        </div>
+        <div class="field"><div class="fl">备注（可选）</div><textarea class="inp" id="editNote" placeholder="写点小心得，比如火候、调料比例…"></textarea></div>
+      </div>
+    </div>
+    <div class="savebar">
+      <button class="save" data-act="saveDish">存进我的小厨房 ✓</button>
+      <button class="del" id="editDel" data-act="delDish" style="display:none">删除</button>
+    </div>
+  </section>
+
+  <!-- ④ 想做的 -->
+  <section class="view" data-view="wish">
+    <div class="topbar">
+      <div class="ttl">想做的</div>
+      <button class="iconbtn" data-act="addWish">＋</button>
+    </div>
+    <div class="htitle"><div class="sub" id="wishSub">收藏起来慢慢解锁～</div></div>
+    <div class="scrollbody"><div class="wishlist" id="wishlist"></div></div>
+    <nav class="tabbar" data-tabbar></nav>
+  </section>
+
+  <!-- ⑤ 冰箱选食材 -->
+  <section class="view" data-view="fridge">
+    <div class="topbar">
+      <div class="ttl">冰箱</div>
+      <button class="iconbtn" data-act="addIng" title="添加食材">＋</button>
+    </div>
+    <div class="htitle"><div class="big">看看冰箱里<br>能做点啥<span class="muted">。</span></div><div class="sub">点选你想用的食材，下面给你配菜～</div></div>
+    <div class="scrollbody">
+      <div class="canvas" id="fridgeCanvas"></div>
+      <div class="hint" id="fridgeHint">还没选食材<br>点上面的食材或 ＋ 添加</div>
+      <div id="resultArea"></div>
+    </div>
+    <button class="gobar" data-act="findDish"><span class="t">找找能做什么</span><span class="go" id="goCount">已选 0 样 →</span></button>
+    <nav class="tabbar" data-tabbar></nav>
+  </section>
+
+  <!-- ⑥ 教程收藏 -->
+  <section class="view" data-view="tutorial">
+    <div class="topbar">
+      <div class="ttl">教程收藏</div>
+      <div style="width:38px"></div>
+    </div>
+    <div class="pastebar">
+      <span class="ic">🔗</span>
+      <input class="inp" id="tutLink" placeholder="粘贴抖音 / 小红书 链接…">
+      <button class="btn" data-act="parseLink">解析</button>
+    </div>
+    <label class="dropzone" id="tutDrop">
+      <input type="file" accept="video/*,audio/*" hidden id="tutFile">
+      <b>📹 上传视频文件</b> · 本地全自动解析（语音转文字）<br>无需联网后端，第一次会下载语音模型
+    </label>
+    <div id="parseStatus"></div>
+    <div class="scrollbody"><div class="tutlist" id="tutlist"></div></div>
+    <nav class="tabbar" data-tabbar></nav>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 通用底部弹窗 -->
+<div class="modal" id="modal"><div class="sheet" id="sheetBody"></div></div>
+
+<script src="js/db.js"></script>
+<script src="js/match.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
