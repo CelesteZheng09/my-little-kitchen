@@ -229,12 +229,11 @@
     $('#resultArea').innerHTML = '';
   }
   const FRIDGE_ANCHORS = [
-    { x: 24, y: 20 }, { x: 238, y: 4 }, { x: 430, y: 42 },
-    { x: 82, y: 150 }, { x: 302, y: 132 }, { x: 500, y: 176 },
-    { x: 34, y: 292 }, { x: 242, y: 260 }, { x: 444, y: 310 },
-    { x: 116, y: 418 }, { x: 340, y: 392 }, { x: 518, y: 456 }
+    { x: 24, y: 16 }, { x: 162, y: 6 }, { x: 292, y: 28 }, { x: 404, y: 18 },
+    { x: 70, y: 146 }, { x: 198, y: 126 }, { x: 338, y: 154 }, { x: 438, y: 134 },
+    { x: 18, y: 276 }, { x: 166, y: 250 }, { x: 288, y: 286 }, { x: 430, y: 260 }
   ];
-  const FRIDGE_SPACING = { width: 630, row: 164, minHeight: 420 };
+  const FRIDGE_SPACING = { width: 526, batch: 420, minHeight: 410 };
 
   function layoutFloat(ings) {
     const list = Array.isArray(ings) ? ings : [];
@@ -247,7 +246,7 @@
       const driftY = ((seed >> 8) % 17) - 8;
       return {
         left: anchor.x + driftX,
-        top: anchor.y + batch * FRIDGE_SPACING.row * 3 + driftY
+        top: anchor.y + batch * FRIDGE_SPACING.batch + driftY
       };
     });
     const bottom = points.reduce((max, p) => Math.max(max, p.top), 0) + 124;
@@ -488,7 +487,7 @@
     const fe = t.closest('.fe[data-ing]');
     if (fe) { const n = fe.dataset.ing; state.fridgeSel.has(n) ? state.fridgeSel.delete(n) : state.fridgeSel.add(n); fe.classList.toggle('sel'); updateFridgeCounts(); return; }
     if (t.closest('[data-act="addIng"]')) { openAddIngSheet(); return; }
-    if (t.closest('[data-act="clearFridge"]')) { state.fridgeSel.clear(); renderFridge(); return; }
+    if (t.closest('[data-act="clearFridge"]')) { await DB.clear('ingredients'); state.fridgeSel.clear(); await renderFridge(); toast('冰箱已清空'); return; }
     if (t.closest('[data-act="findDish"]')) { findDish(); return; }
 
     // 教程
