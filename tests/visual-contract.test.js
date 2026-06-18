@@ -21,11 +21,14 @@ includes('app.css', css, '.cut.d1');
 includes('app.css', css, '.cut.d5');
 includes('app.css', css, '.wishhead');
 includes('app.js', app, 'FRIDGE_ANCHORS');
+includes('app.js', app, 'class="fridgeWorld"');
+includes('app.css', css, '.canvas{position:relative;height:330px;margin:6px 12px 0;flex:none;overflow:auto');
 includes('app.css', css, '.inputbar{width:calc(100% - 32px)');
 
 assert.ok(!app.includes('tagmini'), 'home collage should not render dish mini tags');
 assert.ok(!app.includes('scribble'), 'home collage should not render extra handwritten mini labels');
 assert.ok(!css.includes('tagmini'), 'home collage should not style dish mini tags');
+assert.ok(!app.includes("left: '"), 'fridge anchors should use absolute px slots instead of overlapping percentage slots');
 assert.ok(!app.includes('cols = 4'), 'fridge ingredients should not use a regular 4-column grid');
 assert.ok(!app.includes("label: '教程'"), 'tutorial should not be a bottom tab');
 assert.ok(!html.includes('fridgeHint'), 'fridge should not render the middle hint text');

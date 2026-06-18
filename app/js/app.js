@@ -217,34 +217,42 @@
   // ---------- ⑤ 冰箱 ----------
   async function renderFridge() {
     const ings = await DB.all('ingredients');
-    const positioned = layoutFloat(ings);
-    $('#fridgeCanvas').innerHTML = ings.map((ing, i) => {
-      const p = positioned[i];
+    const layout = layoutFloat(ings);
+    $('#fridgeCanvas').innerHTML = '<div class="fridgeWorld" style="width:' + layout.width + 'px;height:' + layout.height + 'px">' + ings.map((ing, i) => {
+      const p = layout.points[i];
       const sel = state.fridgeSel.has(ing.name) ? ' sel' : '';
       const icon = ing.icon ? '<img src="' + esc(ing.icon) + '">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🧂</div>';
-      return '<span class="fe' + sel + '" data-ing="' + esc(ing.name) + '" style="top:' + p.top + 'px;left:' + p.left + '">' +
+      return '<span class="fe' + sel + '" data-ing="' + esc(ing.name) + '" style="top:' + p.top + 'px;left:' + p.left + 'px">' +
         icon + '<span class="nm">' + esc(ing.name) + '</span></span>';
-    }).join('');
+    }).join('') + '</div>';
     updateFridgeCounts();
     $('#resultArea').innerHTML = '';
   }
   const FRIDGE_ANCHORS = [
-    { left: '4%', top: 18 }, { left: '31%', top: 4 }, { left: '58%', top: 24 },
-    { left: '77%', top: 62 }, { left: '15%', top: 120 }, { left: '48%', top: 104 },
-    { left: '72%', top: 146 }, { left: '2%', top: 224 }, { left: '33%', top: 204 },
-    { left: '60%', top: 238 }, { left: '82%', top: 218 }, { left: '46%', top: 270 }
+    { x: 24, y: 20 }, { x: 238, y: 4 }, { x: 430, y: 42 },
+    { x: 82, y: 150 }, { x: 302, y: 132 }, { x: 500, y: 176 },
+    { x: 34, y: 292 }, { x: 242, y: 260 }, { x: 444, y: 310 },
+    { x: 116, y: 418 }, { x: 340, y: 392 }, { x: 518, y: 456 }
   ];
+  const FRIDGE_SPACING = { width: 630, row: 164, minHeight: 420 };
 
   function layoutFloat(ings) {
     const list = Array.isArray(ings) ? ings : [];
-    return list.map((ing, i) => {
-      if (i < FRIDGE_ANCHORS.length) return FRIDGE_ANCHORS[i];
+    const points = list.map((ing, i) => {
+      const batch = Math.floor(i / FRIDGE_ANCHORS.length);
+      const anchor = FRIDGE_ANCHORS[i % FRIDGE_ANCHORS.length];
+      if (!batch) return { left: anchor.x, top: anchor.y };
       const seed = hashString((ing && ing.name || '') + ':' + i);
+      const driftX = (seed % 19) - 9;
+      const driftY = ((seed >> 8) % 17) - 8;
       return {
-        left: (4 + (seed % 76)) + '%',
-        top: 12 + ((seed >> 8) % 258)
+        left: anchor.x + driftX,
+        top: anchor.y + batch * FRIDGE_SPACING.row * 3 + driftY
       };
     });
+    const bottom = points.reduce((max, p) => Math.max(max, p.top), 0) + 124;
+    const height = Math.max(FRIDGE_SPACING.minHeight, bottom);
+    return { width: FRIDGE_SPACING.width, height, points };
   }
 
   function hashString(s) {

@@ -161,9 +161,11 @@ input,textarea{font-family:inherit;border:none;outline:none;background:none;colo
 .wcard.ghost{background:transparent;box-shadow:none;border:2px dashed #d8d8dc;justify-content:center;color:var(--gray);font-family:var(--kai);font-size:13px;padding:20px;}
 
 /* ===== 冰箱画布 ===== */
-.canvas{position:relative;height:330px;margin:6px 12px 0;flex:none;}
-.canvas .fe{position:absolute;width:64px;height:64px;animation:floaty 3.8s ease-in-out infinite;background:none;}
-.canvas .fe img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;pointer-events:none;}
+.canvas{position:relative;height:330px;margin:6px 12px 0;flex:none;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;touch-action:pan-x pan-y;}
+.canvas::-webkit-scrollbar{display:none;}
+.fridgeWorld{position:relative;min-width:100%;min-height:100%;}
+.canvas .fe{position:absolute;width:76px;height:76px;animation:floaty 3.8s ease-in-out infinite;background:none;display:flex;align-items:center;justify-content:center;}
+.canvas .fe img{width:64px;height:64px;object-fit:contain;mix-blend-mode:multiply;pointer-events:none;}
 .canvas .fe .nm{position:absolute;left:50%;bottom:-26px;transform:translateX(-50%);font-size:11px;font-weight:600;color:var(--gray);font-family:var(--kai);white-space:nowrap;}
 .canvas .fe.sel::after{content:"✓";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:13px;height:13px;border-radius:50%;background:var(--green);color:#fff;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(52,199,89,.45);}
 .canvas .fe.sel .nm{color:var(--ink);font-weight:800;}
