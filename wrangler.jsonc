@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-little-kitchen-parser",
+  "main": "worker/parse-link-worker.js",
+  "compatibility_date": "2026-06-19",
+  "workers_dev": true
+}
