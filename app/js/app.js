@@ -331,6 +331,7 @@
       $('#parseStatus').innerHTML = parseStatusHTML('解析失败，请手动填写', false);
       res = { title: file.name, state: 'manual', ingredients: [], steps: [] };
     }
+    res.kind = 'video';
     $('#parseStatus').innerHTML = parseStatusHTML(
       res.state === 'auto' ? '自动解析成功，已提取食材与步骤' :
       res.state === 'half' ? '语音已转写，请补全食材/步骤' : '已保存，请手动补全内容', false);
@@ -341,8 +342,11 @@
     let res;
     try { res = await Parser.parseLink(link); }
     catch (e) { toast('请输入有效链接'); $('#parseStatus').innerHTML = ''; return; }
+    res.kind = 'link';
     $('#parseStatus').innerHTML = parseStatusHTML(
-      res.reason === 'no_proxy' ? '当前未连接解析服务，已转手动补全' : '链接解析完成', false);
+      res.reason === 'share_text' ? '已从分享文案自动抽取内容' :
+      res.reason === 'no_proxy' ? '当前未连接解析服务，已转手动补全' :
+      res.reason === 'proxy_failed' ? '解析服务暂时不可用，已转手动补全' : '链接解析完成', false);
     openTutorialEditor(res);
   }
   function openTutorialEditor(res) {
@@ -354,7 +358,7 @@
     $('#tutSave').onclick = async () => {
       const t = {
         id: DB.uid(), title: $('#tutT').value.trim() || '未命名教程',
-        source: res.link ? '链接收藏' : '本地视频', state: res.state || 'manual',
+        source: res.kind === 'video' ? '本地视频' : (res.link ? '链接收藏' : '文本解析'), state: res.state || 'manual',
         cover: res.cover || '', link: res.link || '',
         ingredients: $('#tutIng').value.split(/[，,]/).map((s) => s.trim()).filter(Boolean),
         steps: $('#tutSteps').value.split('\n').map((s) => s.trim()).filter(Boolean),

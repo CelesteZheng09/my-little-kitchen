@@ -10,9 +10,9 @@
 (function (global) {
   'use strict';
 
-  // 预留：若用户自行部署了解析代理，把地址填到这里即可启用「链接全自动」。
-  // 留空 => 链接走「方案 B 降级 / 手动」。
-  const PARSE_PROXY = '';
+  // 若部署了解析代理，在 app/config.js 里填入 PARSE_PROXY 即可启用「链接全自动」。
+  // 留空 => 优先从分享文案中抽取，无法抽取时再降级手动。
+  const PARSE_PROXY = (global.MLK_CONFIG && global.MLK_CONFIG.PARSE_PROXY || '').replace(/\/$/, '');
 
   // transformers.js CDN（在线时懒加载；离线时方案 C 不可用，UI 会提示）
   const TJS_URL = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
@@ -26,26 +26,107 @@
     '番茄', '西红柿', '鸡蛋', '青菜', '蒜', '大蒜', '蒜末', '葱', '姜', '五花肉', '猪肉',
     '牛肉', '鸡肉', '排骨', '西兰花', '紫菜', '豆腐', '土豆', '茄子', '辣椒', '青椒',
     '冰糖', '白糖', '醋', '料酒', '生抽', '老抽', '蚝油', '盐', '胡椒', '香油', '淀粉',
-    '虾', '鱼', '花椒', '八角', '香菜', '木耳', '胡萝卜', '黄瓜', '洋葱', '香菇'
+    '虾', '鱼', '鲈鱼', '带鱼', '鸡翅', '鸡腿', '牛排', '肉末', '米饭', '面条', '花椒',
+    '八角', '香菜', '木耳', '胡萝卜', '黄瓜', '洋葱', '香菇', '豆瓣酱', '辣椒面'
   ];
 
   function extractIngredients(text) {
     const found = new Set();
     COMMON_INGREDIENTS.forEach((ing) => { if (text.indexOf(ing) >= 0) found.add(ing); });
-    return Array.from(found);
+    return refineIngredients(Array.from(found));
+  }
+
+  function refineIngredients(list) {
+    const set = new Set(list);
+    if (set.has('鱼') && list.some((x) => x !== '鱼' && /鱼$/.test(x))) set.delete('鱼');
+    if (set.has('猪肉') && (set.has('五花肉') || set.has('排骨'))) set.delete('猪肉');
+    if (set.has('大蒜') && set.has('蒜')) set.delete('大蒜');
+    return Array.from(set);
   }
 
   function extractSteps(text) {
-    // 先按显式分句符切，再按动作连接词补切，过滤太短的碎句
-    let parts = text
-      .replace(/\s+/g, '')
-      .split(/[。！!？?；;\n]/)
-      .map((s) => s.trim())
+    const clean = (text || '').replace(/\r/g, '\n').replace(/[ \t]+/g, ' ').trim();
+    let parts = clean
+      .split(/\n+|(?:^|[。！!？?；;])\s*(?=(?:\d+[\.、)]|第[一二三四五六七八九十]+步|先|然后|接着|再|最后))/)
+      .map((s) => s.replace(/^\s*(?:\d+[\.、)]|第[一二三四五六七八九十]+步[:：、.]?)\s*/, '').trim())
       .filter((s) => s.length >= 4);
     if (parts.length <= 1) {
-      parts = text.split(/然后|接着|再|最后|首先|之后/).map((s) => s.trim()).filter((s) => s.length >= 4);
+      parts = clean.split(/然后|接着|再|最后|首先|之后/).map((s) => s.trim()).filter((s) => s.length >= 4);
     }
-    return parts.slice(0, 12);
+    const action = /切|洗|焯|腌|煎|炒|炸|蒸|煮|炖|拌|倒|加入|加|撒|收汁|出锅|装盘/;
+    const metaLine = /^(食材|材料|调料|配料|标题|来源)[:：]/;
+    const promoLine = /超简单|教程|分享|收藏|链接|主页|笔记|小红书|抖音/;
+    return parts
+      .map((s) => s.replace(/[#@].*$/g, '').trim())
+      .filter((s) => !metaLine.test(s))
+      .filter((s) => action.test(s))
+      .filter((s) => !(promoLine.test(s) && !/[，,。.；;：:]/.test(s)))
+      .slice(0, 12);
+  }
+
+  function extractFirstUrl(input) {
+    const m = (input || '').match(/https?:\/\/[^\s"'<>，。；、）)]+/i);
+    return m ? m[0].replace(/[.,;!?，。！？；]+$/, '') : '';
+  }
+
+  function hostOf(link) {
+    try { return new URL(link).hostname.replace(/^www\./, ''); } catch (e) { return '链接'; }
+  }
+
+  function cleanShareText(input, link) {
+    return (input || '')
+      .replace(link || '', ' ')
+      .replace(/https?:\/\/[^\s"'<>，。；、）)]+/ig, ' ')
+      .replace(/(复制|復制|打开|打開|看看|快来|快來|点击链接|點擊連結|小红书|小紅書|抖音|Douyin|RedNote|http)/ig, ' ')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
+  function inferTitle(text, host) {
+    const lines = (text || '')
+      .split(/\n|。|！|!|？|\?/)
+      .map((s) => s.replace(/[#@].*$/g, '').trim())
+      .filter((s) => s.length >= 2 && s.length <= 36);
+    const foodish = lines.find((s) => /菜|饭|面|肉|鱼|虾|蛋|汤|炒|蒸|煮|炖|煎|烤|拌|豆腐|西兰花|番茄|鸡|牛|排骨/.test(s));
+    return foodish || lines[0] || ('来自 ' + host + ' 的教程');
+  }
+
+  function parseTextFallback(input, link) {
+    const text = cleanShareText(input, link);
+    const title = inferTitle(text, hostOf(link));
+    const ingredients = extractIngredients(text);
+    const steps = extractSteps(text).filter((s) => compactLine(s) !== compactLine(title));
+    return {
+      title,
+      cover: '',
+      state: steps.length ? 'auto' : (ingredients.length ? 'half' : 'manual'),
+      ingredients,
+      steps,
+      link,
+      text
+    };
+  }
+
+  function compactLine(s) {
+    return (s || '').replace(/[^\u4e00-\u9fa5a-z0-9]/ig, '').trim();
+  }
+
+  async function fetchProxy(link, shareText) {
+    const payload = { url: link, text: shareText || '' };
+    try {
+      const resp = await fetch(PARSE_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) return resp.json();
+    } catch (e) {}
+
+    const qs = '?url=' + encodeURIComponent(link) + (shareText ? '&text=' + encodeURIComponent(shareText) : '');
+    const resp = await fetch(PARSE_PROXY + qs);
+    if (!resp.ok) throw new Error('PROXY_FAILED');
+    return resp.json();
   }
 
   // ---------- 方案 C：本地 Whisper ----------
@@ -127,38 +208,45 @@
    * @returns {Promise<{title,cover,state,ingredients,steps,link}>}
    */
   async function parseLink(link) {
-    link = (link || '').trim();
-    if (!link) throw new Error('EMPTY_LINK');
+    const raw = (link || '').trim();
+    if (!raw) throw new Error('EMPTY_LINK');
 
-    // 预留：部署代理后启用「链接全自动（方案 C 远程）」
-    if (PARSE_PROXY) {
+    const foundUrl = extractFirstUrl(raw);
+    link = foundUrl || (/^https?:\/\//i.test(raw) ? raw : '');
+    const shareText = cleanShareText(raw, link);
+
+    // 部署代理后启用「链接全自动」
+    if (PARSE_PROXY && link) {
       try {
-        const resp = await fetch(PARSE_PROXY + '?url=' + encodeURIComponent(link));
-        if (resp.ok) {
-          const data = await resp.json();
-          return {
-            title: data.title || '未命名教程',
-            cover: data.cover || '',
-            state: (data.ingredients && data.ingredients.length) ? 'auto' : 'half',
-            ingredients: data.ingredients || [],
-            steps: data.steps || [],
-            link
-          };
-        }
+        const data = await fetchProxy(link, shareText);
+        const ingredients = Array.isArray(data.ingredients) ? data.ingredients : [];
+        const steps = Array.isArray(data.steps) ? data.steps : [];
+        return {
+          title: data.title || inferTitle(shareText, hostOf(link)),
+          cover: data.cover || '',
+          state: data.state || (steps.length ? 'auto' : (ingredients.length ? 'half' : 'manual')),
+          ingredients,
+          steps,
+          link: data.link || link,
+          reason: data.reason || 'proxy'
+        };
       } catch (e) { /* 落到下面的降级 */ }
     }
 
-    // 无代理 / 抓取失败 → 方案 B 降级：仅保留链接，标题用域名，转手动补全
-    let host = '链接';
-    try { host = new URL(link).hostname.replace(/^www\./, ''); } catch (e) {}
+    // 无代理 / 抓取失败 → 先从分享文案抽取。若只粘贴短链接，才手动补全。
+    const local = parseTextFallback(raw, link);
+    if (local.ingredients.length || local.steps.length) {
+      return { ...local, reason: 'share_text' };
+    }
+
     return {
-      title: '来自 ' + host + ' 的教程',
+      title: '来自 ' + hostOf(link) + ' 的教程',
       cover: '',
       state: 'manual',
       ingredients: [],
       steps: [],
       link,
-      reason: 'no_proxy'
+      reason: PARSE_PROXY ? 'proxy_failed' : 'no_proxy'
     };
   }
 
