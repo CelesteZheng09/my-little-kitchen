@@ -27,7 +27,7 @@
     '海鲜': 'icons/cat-seafood.jpg', '汤': 'icons/cat-soup.jpg', '凉菜沙拉': 'icons/cat-cold.jpg',
     '饮料': 'icons/cat-cold.jpg'
   };
-  const CAT_LABEL = { '肉': '肉肉', '凉菜沙拉': '凉菜' };
+  const CAT_LABEL = { '凉菜沙拉': '凉菜' };
   const ING_EMOJI = {
     '番茄': '🍅', '西红柿': '🍅', '鸡蛋': '🥚', '青菜': '🥬', '西兰花': '🥦',
     '蒜': '🧄', '大蒜': '🧄', '葱': '🧅', '姜': '🫚', '五花肉': '🥩',
