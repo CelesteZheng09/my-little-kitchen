@@ -21,6 +21,7 @@ includes('app.css', css, '.cut.d1');
 includes('app.css', css, '.cut.d5');
 includes('app.css', css, '.wishhead');
 includes('app.js', app, 'FRIDGE_ANCHORS');
+includes('app.css', css, '.inputbar{width:calc(100% - 32px)');
 
 assert.ok(!app.includes('tagmini'), 'home collage should not render dish mini tags');
 assert.ok(!app.includes('scribble'), 'home collage should not render extra handwritten mini labels');

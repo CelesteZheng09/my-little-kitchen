@@ -181,7 +181,7 @@ input,textarea{font-family:inherit;border:none;outline:none;background:none;colo
 .quickrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:14px 22px 4px;}
 .quickrow .q{font-size:12px;font-family:var(--kai);background:var(--chip);color:var(--gray);border-radius:16px;padding:7px 13px;font-weight:600;}
 .quickrow .q.on{background:var(--ink);color:#fff;}
-.inputbar{width:auto;display:block;flex:none;margin:0 16px 12px;background:var(--card);border-radius:26px;box-shadow:var(--soft);padding:13px 16px 11px;text-align:left;}
+.inputbar{width:calc(100% - 32px);display:block;flex:none;margin:0 16px 12px;background:var(--card);border-radius:26px;box-shadow:var(--soft);padding:13px 16px 11px;text-align:left;}
 .inputbar .ph{display:block;font-size:13px;color:var(--gray2);font-family:var(--kai);}
 .inputbar .row{display:flex;align-items:center;gap:10px;}
 .inputbar .row .inp{font-size:13px;font-family:var(--kai);}
