@@ -366,15 +366,22 @@
       '<div class="picklist" id="pickList">' + ings.map((i) =>
         '<span class="pk' + (state.fridgeSel.has(i.name) ? ' on' : '') + '" data-pick="' + esc(i.name) + '">' + esc(i.name) + '</span>').join('') + '</div>' +
       '<button class="confirm" id="ingDone">完成</button>');
+    const savePendingIngredient = async () => {
+      const name = $('#newIng').value.trim();
+      if (!name) return false;
+      const exist = (await DB.all('ingredients')).find((x) => x.name === name);
+      if (!exist) await DB.put('ingredients', { id: DB.uid(), name, icon: '' });
+      state.fridgeSel.add(name);
+      $('#newIng').value = '';
+      return true;
+    };
     $('#newIng').addEventListener('keydown', async (e) => {
       if (e.key === 'Enter' && e.target.value.trim()) {
-        const name = e.target.value.trim();
-        let exist = (await DB.all('ingredients')).find((x) => x.name === name);
-        if (!exist) await DB.put('ingredients', { id: DB.uid(), name, icon: '' });
-        state.fridgeSel.add(name); e.target.value = ''; openAddIngSheet();
+        await savePendingIngredient();
+        openAddIngSheet();
       }
     });
-    $('#ingDone').onclick = () => { closeSheet(); renderFridge(); };
+    $('#ingDone').onclick = async () => { await savePendingIngredient(); closeSheet(); await renderFridge(); };
     $('#pickList').onclick = (e) => {
       const pk = e.target.closest('[data-pick]'); if (!pk) return;
       const n = pk.dataset.pick;
