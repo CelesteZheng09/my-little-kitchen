@@ -1,5 +1,5 @@
 /* 我的小厨房 · Service Worker（离线缓存外壳 + 本地素材） */
-const CACHE = 'my-kitchen-v10';
+const CACHE = 'my-kitchen-v11';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './css/app.css?v=20260618-v6h',
