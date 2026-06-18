@@ -1,11 +1,11 @@
 /* 我的小厨房 · Service Worker（离线缓存外壳 + 本地素材） */
-const CACHE = 'my-kitchen-v11';
+const CACHE = 'my-kitchen-v12';
 const ASSETS = [
   './', './index.html', './manifest.json',
-  './css/app.css?v=20260618-v6h',
-  './js/db.js?v=20260618-v6h', './js/match.js?v=20260618-v6h', './js/parser.js?v=20260618-v6h', './js/app.js?v=20260618-v6h',
+  './css/app.css?v=20260618-v6i',
+  './js/db.js?v=20260618-v6i', './js/match.js?v=20260618-v6i', './js/parser.js?v=20260618-v6i', './js/app.js?v=20260618-v6i',
   './icons/cat-staple.jpg', './icons/cat-meat.jpg', './icons/cat-veg.jpg',
-  './icons/cat-seafood.jpg', './icons/cat-soup.jpg', './icons/cat-cold.jpg',
+  './icons/cat-seafood.jpg', './icons/cat-soup.jpg', './icons/cat-cold.jpg', './icons/cat-drink.jpg',
   './icons/dish-fanqie.jpg', './icons/dish-hongshao.jpg', './icons/dish-xilanhua.jpg', './icons/dish-zicai.jpg',
   './icons/ing-tomato.jpg', './icons/ing-egg.jpg', './icons/ing-veg.jpg',
   './icons/ing-garlic.jpg', './icons/ing-pork.jpg', './icons/ing-scallion.jpg',

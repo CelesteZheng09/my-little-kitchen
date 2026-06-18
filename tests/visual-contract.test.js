@@ -22,6 +22,7 @@ includes('app.css', css, '.cut.d5');
 includes('app.css', css, '.wishhead');
 includes('app.js', app, 'FRIDGE_ANCHORS');
 includes('app.js', app, 'class="fridgeWorld"');
+includes('app.js', app, "'饮料': 'icons/cat-drink.jpg'");
 includes('app.css', css, '.canvas{position:relative;height:330px;margin:6px 12px 0;flex:none;overflow:auto');
 includes('app.css', css, '.inputbar{width:calc(100% - 32px)');
 

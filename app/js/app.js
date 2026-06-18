@@ -25,7 +25,7 @@
   const CAT_ICON = {
     '主食': 'icons/cat-staple.jpg', '肉': 'icons/cat-meat.jpg', '青菜': 'icons/cat-veg.jpg',
     '海鲜': 'icons/cat-seafood.jpg', '汤': 'icons/cat-soup.jpg', '凉菜沙拉': 'icons/cat-cold.jpg',
-    '饮料': 'icons/cat-cold.jpg'
+    '饮料': 'icons/cat-drink.jpg'
   };
   const CAT_LABEL = { '凉菜沙拉': '凉菜' };
   const ING_EMOJI = {
