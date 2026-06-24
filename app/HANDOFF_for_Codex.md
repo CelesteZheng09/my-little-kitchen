@@ -73,11 +73,56 @@
 
 ### 1.4 教程解析三态（已与用户确认的落地方案）
 - **方案 C（完整自动，首期就要做）**：上传**本地视频/音频文件** → 浏览器内 Whisper（transformers.js / WASM）做语音转文字 → 规则抽取食材/步骤。全程浏览器内运行，离线可用（仅首次需联网下载模型）。
-- **方案 B（兜底）**：粘贴**分享链接** → 预留解析接口 `PARSE_PROXY`；当未配置代理时自动降级为「手动补全」。
+- **方案 B（兜底）**：粘贴**分享链接 / 分享文案** → 通过 `app/config.js` 中的 `PARSE_PROXY` 调用 Cloudflare Worker；代理失败时从文案中抽取标题、食材、步骤，再降级为「手动补全」。
 - 纯前端无法直接抓取抖音/小红书视频（CORS + 防爬），故链接全自动需用户自建轻量代理；接口已预留。
 
 ### 1.5 分类枚举（固定）
 `主食 / 肉 / 青菜 / 海鲜 / 汤 / 凉菜沙拉 / 饮料`
+
+### 1.6 拍照生成贴纸（用户最终想要的核心体验，已落地 A 层）
+
+> 灵感来自用户提供的参考 App（一个「拍实物 → 自动抠成带白边贴纸 → 配文字卡片」的单词/收藏类应用）。参考视频的关键交互拆解：
+> - 列表页：拍到的实物都变成**白色描边贴纸**，散布在浅色点阵网格上，下方配粗体名称标签；右下角是彩色圆形快门按钮。
+> - 拍摄/确认：拍完先出现一张「主体卡片 + 名称」的确认卡（带 ↺重拍 / ✓确认 / ✗取消 三个圆钮）。
+> - 详情页：单个贴纸放大居中 + 名称 + 释义，顶部一排同组贴纸缩略图。
+
+**我们小厨房落地的交互流程（已实现）**：
+1. 「记一道菜」页封面区有两个入口：**「拍下这道菜 · 自动生成贴纸」**（`capture="environment"` 直接调后置相机）与「从相册选一张」。
+2. 选/拍图后进入**全屏生成动画**（`#stickerGen`）：绿色扫描线扫过原图（识别）→ 进度条 → 抠好的贴纸带白边「弹入」replace 原图。
+3. 文案分阶段：识别菜品→抠图→生成描边→（可选画风渲染）→完成。
+4. 完成后给「用这张贴纸 ✓ / 重拍」两个按钮；确认即写入该菜品 `cover`（base64 PNG，透明背景 + 白描边）。
+
+**技术实现（纯前端 / 离线优先）**：
+- **A 层（已做，离线）**：`@xenova/transformers` 的 **RMBG-1.4** 抠图模型（首次联网下载，之后浏览器缓存离线）→ Canvas 自动裁到主体外接框 + 多方向白色描边 + 柔和投影 → 输出方形 PNG 贴纸。
+- **兜底**：模型不可用/解码失败 → 退化为「方形居中裁切 + 圆角白边」，仍能离线产出可用封面（`state:'fallback'`）。
+- **B 层（可选，未启用）**：把抠好的主体发给自建 AI 重绘服务做「更有意思的画风」；`sticker.js` 顶部 `STICKER_API` 留空即跳过 B 层。**画风化重绘必须用外部图像生成服务，纯前端无法完成**，与链接解析代理同理需用户自建。
+
+### 1.7 点菜（周末计划 / 餐馆小票，已落地）
+
+> 用户场景：周末想好吃什么，挑几道菜定个日子，生成一张「餐馆点菜单」样式的小票存起来，之后还能继续加菜减菜。
+
+**入口**：厨房首页右上角新增「点菜」icon（菜单+对勾的线性 SVG），点击进入点菜列表页（`#/order`）。
+
+**交互流程（已实现）**：
+1. 点菜列表页（view `order`）：展示所有已存的点菜小票（按用餐日期升序），右上角/右下角 ＋ 进入新建。
+2. 新建/编辑页（view `ordernew`，`#/ordernew/<id|new>`）：
+   - **想哪天吃**：`<input type=date>`，默认预填下一个周六。
+   - **备注**：可选，给这一单起名（如「周末家宴」）。
+   - **场景一 从已会做的菜里挑**：把 `dishes`(madeIt) 渲染成可勾选封面小卡（选中绿描边 + ✓）。
+   - **场景二 临时加新菜**：输入框 + 回车/「加入」按钮，加到 `extra`（不落 dishes 表，仅属于这一单）。
+   - **这一单的菜**：已选项以 chips 展示，可逐个 × 删除。
+   - 底部「生成点菜小票 🧾」保存。
+3. 小票样式（`.receipt`）：CSS 模拟热敏纸——顶部「小厨房点菜单」+ 日期 + 备注，中间逐行列菜（右侧 ×1），底部「共 N 道菜」+「加菜 / 改单」按钮回到编辑。
+4. **可继续编辑**：点小票上「加菜 / 改单」→ 回到 `ordernew` 还原该单状态，增删后再次保存覆盖。
+
+**数据模型 orders（新增 store）**
+```js
+{ id, title,                 // title: 备注名，可空
+  eatAt,                     // 用餐日期时间戳
+  items:[{dishId, name, cover}], // dishId 空 = 临时手动加的菜
+  createdAt }
+```
+> IndexedDB 版本从 1 → **2**（`onupgradeneeded` 里新增 `orders` store，旧数据保留）。
 
 ---
 
@@ -95,6 +140,7 @@ app/
 │  ├─ db.js          IndexedDB 数据层 + 示例种子数据（全局 window.DB）
 │  ├─ match.js       冰箱匹配算法（全局 window.Match）
 │  ├─ parser.js      教程解析：本地 Whisper + 链接兜底（全局 window.Parser）
+│  ├─ sticker.js     拍照生成贴纸：RMBG 抠图 + Canvas 白描边（全局 window.Sticker）
 │  └─ app.js         路由 + 7 页渲染 + 全局事件委托（IIFE，自启动）
 └─ icons/            16 张本地素材（分类6 + 菜品4 + 食材6）+ app-icon.png
 ```
@@ -143,17 +189,33 @@ app/
 
 **parser.js**
 - `Parser.parseVideoFile(file, onStage)`：懒加载 Whisper → `decodeAudio`（WebAudio 解码并重采样到 16k 单声道）→ 转写 → `extractIngredients`+`extractSteps`。模型不可用/解码失败 → 优雅降级返回 `state:'manual'`。
-- `Parser.parseLink(link)`：若配置 `PARSE_PROXY` 则请求代理拿结构化结果；否则降级返回 `state:'manual'`（标题取域名，仅存链接）。
+- `Parser.parseLink(link)`：从 `window.MLK_CONFIG.PARSE_PROXY` 读取代理地址；若配置则请求代理拿结构化结果。代理不可用时会先解析复制来的分享文案，最后才返回 `state:'manual'`。
 - `extractIngredients`：基于内置常见食材词表做包含匹配。
 - `extractSteps`：按句末标点切句，过短句过滤，必要时按「然后/接着/再/最后」二次切，取前 12 步。
-- 顶部常量 `PARSE_PROXY=''`（留空 = 链接走手动兜底）。
+- `PARSE_PROXY` 不再硬编码在 `parser.js` 顶部，运行时配置在 `app/config.js`。
+
+**sticker.js**（拍照生成贴纸，§1.6）
+- `Sticker.fromImage(src, onStage)` → `{ dataURL, state:'auto'|'fallback', usedAI }`：懒加载 RMBG-1.4 → 生成 alpha 蒙版 → `composeCutout`（原图叠 alpha = 透明背景抠图）→ `makeSticker`（裁到 `bbox` 外接框 + 多方向白描边 + 投影，输出方形 PNG）。
+- `onStage` 阶段：`loading_model / model_progress(detail.progress) / segmenting / compositing / repainting / done`。
+- 失败兜底 `fallbackSticker`：方形居中裁切 + 圆角白边（离线可用）。
+- 可选 `aiRepaint(dataURL)`：仅当 `STICKER_API` 非空时把主体发给自建服务做画风重绘。
+- 顶部常量 `STICKER_API=''`（留空 = 仅 A 层离线贴纸，不做画风化）。
+- ⚠️ 与 Whisper 各自独立 CDN 懒加载与缓存，互不影响。
 
 **app.js**
 - `state`：`activeCat`（null=默认随机全部）、`homeOrder`（随机顺序缓存）、`fridgeSel`（Set）、编辑中暂存（editingId/editIngs/editSteps/editCover）。
-- 渲染函数：`renderHome/renderDish/renderEdit/renderWish/renderFridge/renderTutorial`，集中在 `RENDER` 表由 `route()` 分发。
+- 渲染函数：`renderHome/renderDish/renderEdit/renderWish/renderFridge/renderTutorial/renderOrder/renderOrderNew`，集中在 `RENDER` 表由 `route()` 分发。
 - 首页默认随机：无 `activeCat` 时用 `shuffle` 生成 `homeOrder` 并缓存；新增/删除菜品后置空以重洗。
 - 全局 `click` 事件委托：`data-nav`/`data-back`/`data-act`/`data-cat` 等属性驱动；底部弹窗 `openSheet/closeSheet`。
-- `change` 事件：封面图片选择 → `FileReader` 转 base64 存入 `cover`；教程视频选择 → `handleVideoFile`。
+- `change` 事件：封面拍照/选图 → 走 `runStickerGen`（全屏生成动画 + `Sticker.fromImage` 抠图描边）→ 确认后写入 `cover`；教程视频选择 → `handleVideoFile`。
+- **点菜模块（§1.7）**：
+  - 暂存 `orderState = { id, dishIds:Set, extra:[] }`，进入 `ordernew` 时按 id 还原、新建时清空。
+  - 日期工具：`fmtDate(ts)`→「M 月 D 日 · 周X」展示；`toDateInput(ts)`→`<input type=date>` 的 `YYYY-MM-DD`；`nextWeekend()`→下一个周六时间戳（新建默认日期）。
+  - `renderOrder()`：读 `orders`，按 `eatAt` 升序渲染小票列表；空态引导新建。
+  - `renderOrderNew(id)`：渲染日期/备注输入、可勾选的已会做菜卡（`#orderPick`）、临时加菜输入、已选 chips（`renderOrderChosen`）。
+  - `saveOrder()`：把 `dishIds`(取自 dishes) + `extra`(临时菜) 合成 `items[]`，`eatAt` 取日期输入当天 12:00；空单校验后 `DB.put('orders')`。
+  - `delOrder()`、`addOrderExtra()`（读 `#orderAddName` 入 `extra`，回车亦可触发）。
+- 点菜相关 `click`/`keydown` 委托：`data-orderpick`(勾/取消已会做菜)、`data-orderunpick`/`data-orderunextra`(删 chip)、`data-act=orderAddDish/saveOrder/delOrder`、`data-orderedit`(小票→回编辑)、`#orderAddName` 回车加菜。
 - 启动：`seedIfEmpty()` → 默认跳 `#/home` → `route()` → 注册 `sw.js`。
 
 ### 2.5 样式系统（css/app.css 关键变量）
@@ -195,8 +257,8 @@ Service Worker、ES module 动态 import（Whisper）、部分 fetch 在 `file:/
 - 若想提升中文识别质量，可考虑换更大模型（whisper-base/small），但下载体积与耗时上升，需权衡。
 
 ### 3.4 链接全自动解析需要自建代理
-- 纯前端因 CORS + 防爬**无法**直接抓取抖音/小红书视频；`parser.js` 顶部 `PARSE_PROXY` 留空即自动降级手动。
-- 若用户要打通链接自动解析：需部署一个轻量代理 / Serverless，输入分享链接、输出 `{title,cover,ingredients,steps}` JSON；把地址填入 `PARSE_PROXY` 即可启用。
+- 纯前端因 CORS + 防爬**无法**直接抓取抖音/小红书视频；当前已通过 Cloudflare Worker 接入 `PARSE_PROXY`。
+- 若 `workers.dev` 在当前网络不可达：给 Worker 绑定自定义域名，再把新域名填入 `app/config.js`。
 - ⚠️ 本项目硬约束：**不要在本地沙箱内起任何监听端口的服务**；代理由用户自行在自己的环境部署。
 
 ### 3.5 数据安全 / 隐私
@@ -210,12 +272,14 @@ Service Worker、ES module 动态 import（Whisper）、部分 fetch 在 `file:/
 4. **食材 ↔ 菜品的食材命名一致性**：匹配靠名称精确相等，建议加入同义词归一（如「西红柿/番茄」），`parser.extractIngredients` 词表与匹配可共用一份归一逻辑。
 5. **离线缓存版本管理**：`sw.js` 缓存名为 `my-kitchen-v1`，更新静态资源时记得升版本号以触发更新。
 6. **导入/导出**：自用场景建议加一个本地 JSON 导出/导入（换机/备份），目前只有「重置示例」。
+7. **拍照贴纸真机验证 + B 层（可选）**：A 层离线抠图贴纸已落地（RMBG-1.4），需在真机验证 iOS Safari 的 WASM 抠图性能（首次下载约几十 MB，与 Whisper 独立缓存）；若用户要「更有意思的画风」需自建 AI 重绘服务并填 `sticker.js` 顶部 `STICKER_API`（纯前端无法画风化）。可参考的范例交互见 §1.6。
 
 ### 3.7 严禁改动的产品决策（已与用户确认）
 - 首页未选分类时 = 全部 + 随机排序。
 - 教程首期就要做完整方案 C（本地视频全自动），方案 B 仅兜底。
 - 一次性交付全部 7 页。
 - 视觉沿用 v6 白色极简：分类图标无色块/无圆圈、整体高亮 + 浮动；贴纸去白底。
+- 拍照生成贴纸是用户「最终想要的核心体验」：拍菜→自动抠图→白描边贴纸，生成过程要有动画（参考 §1.6）；A 层离线必做，画风化（B 层）为可选增强。
 
 ---
 

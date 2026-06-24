@@ -1,14 +1,14 @@
 /* ===== 我的小厨房 · 本地数据层（IndexedDB） =====
  * 纯前端、离线优先、无后端、无账号。
- * 四张表：dishes（菜品）/ ingredients（食材库）/ tutorials（教程）/ wishlist（想做的）
+ * 五张业务表：dishes（菜品）/ ingredients（食材库）/ tutorials（教程）/ wishlist（想做的）/ orders（点菜）
  * 对外暴露全局对象 DB，所有方法返回 Promise。
  */
 (function (global) {
   'use strict';
 
   const DB_NAME = 'my-kitchen';
-  const DB_VER = 1;
-  const STORES = ['dishes', 'ingredients', 'tutorials', 'wishlist', 'meta'];
+  const DB_VER = 2;
+  const STORES = ['dishes', 'ingredients', 'tutorials', 'wishlist', 'orders', 'meta'];
 
   let _db = null;
 
@@ -26,6 +26,8 @@
           db.createObjectStore('tutorials', { keyPath: 'id' });
         if (!db.objectStoreNames.contains('wishlist'))
           db.createObjectStore('wishlist', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('orders'))
+          db.createObjectStore('orders', { keyPath: 'id' });
         if (!db.objectStoreNames.contains('meta'))
           db.createObjectStore('meta', { keyPath: 'key' });
       };

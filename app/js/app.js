@@ -55,6 +55,7 @@
     return a;
   }
   function esc(s) { return (s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function catLabel(c) { return CAT_LABEL[c] || c || ''; }
   function ingredientIconFor(name) { return ING_ICON[name] || ''; }
   function fileToDataURL(file) {
     return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
@@ -63,8 +64,6 @@
     if (src) return '<img class="' + (cls || '') + '" src="' + esc(src) + '" loading="lazy" decoding="async">';
     return '<div class="' + (cls || '') + '" style="display:flex;align-items:center;justify-content:center;background:var(--chip);font-size:26px">🍽️</div>';
   }
-  function catLabel(c) { return CAT_LABEL[c] || c || ''; }
-  function ingLabel(name) { return '<span class="em">' + esc(ING_EMOJI[name] || '🥢') + '</span>' + esc(name); }
 
   // ---------- 路由 ----------
   function go(view, param) {
@@ -116,30 +115,17 @@
       list = state.homeOrder.map((id) => map[id]).filter(Boolean);
     }
 
-    const collage = $('#homeCollage');
+    const grid = $('#dishgrid');
     if (!list.length) {
-      collage.innerHTML = ''; $('#homeEmpty').style.display = 'block';
+      grid.innerHTML = ''; $('#homeEmpty').style.display = 'block';
     } else {
       $('#homeEmpty').style.display = 'none';
-      collage.innerHTML = renderHomeCollage(list);
-      const rows = Math.max(1, Math.ceil(list.length / 5));
-      collage.style.height = (530 + (rows - 1) * 500) + 'px';
+      grid.innerHTML = list.map((d) =>
+        '<div class="dishcard" data-nav="dish" data-id="' + d.id + '">' +
+        coverImg(d.cover) +
+        '<div class="body"><div class="dn">' + esc(d.name) + '</div>' +
+        '<div class="mt">' + esc(catLabel(d.category || '')) + (d.tags && d.tags.length ? ' · ' + esc(d.tags[0]) : '') + '</div></div></div>').join('');
     }
-  }
-
-  function renderHomeCollage(list) {
-    const cards = list.map((d, i) => {
-      const slot = (i % 5) + 1;
-      const row = Math.floor(i / 5);
-      const cover = d.cover
-        ? '<img src="' + esc(d.cover) + '" alt="' + esc(d.name) + '" loading="lazy" decoding="async">'
-        : '<div class="phdish">🍽️</div>';
-      return '<button class="cut d' + slot + '" style="--row-offset:' + (row * 500) + 'px" data-nav="dish" data-id="' + esc(d.id) + '">' +
-        '<span class="pic">' + cover + '</span>' +
-        '<span class="lbl">' + esc(d.name) + '</span>' +
-        '</button>';
-    }).join('');
-    return cards;
   }
 
   // ---------- ② 详情 ----------
@@ -156,7 +142,7 @@
       (d.tags && d.tags.length ? '<span class="dot">·</span>' + esc(d.tags[0]) : '') +
       (d.madeIt !== false ? '<span class="dot">·</span>会做啦 ✓' : '') + '</div></div>' +
       sec('🥢 用了这些食材', '<div class="ingchips">' +
-        (d.ingredients || []).map((i) => '<span class="ic2">' + ingLabel(i) + '</span>').join('') + '</div>') +
+        (d.ingredients || []).map((i) => '<span class="ic2">' + esc(i) + '</span>').join('') + '</div>') +
       sec('👩‍🍳 我的做法', '<div class="steps">' +
         (d.steps || []).map((s, i) => '<div class="stp"><div class="n">' + (i + 1) + '</div><div class="tx">' + esc(s) + '</div></div>').join('') + '</div>') +
       (tut ? sec('🔗 关联的教程', '<div class="linkcard" data-tutorial-id="' + esc(tut.id) + '"><div class="thumb">▶️</div>' +
@@ -196,7 +182,7 @@
   }
   function renderEditIngs() {
     $('#editIng').innerHTML = state.editIngs.map((t, i) =>
-      '<span class="tg">' + ingLabel(t) + ' <span class="x" data-rming="' + i + '">×</span></span>').join('') +
+      '<span class="tg">' + esc(t) + ' <span class="x" data-rming="' + i + '">×</span></span>').join('') +
       '<span class="addtg" data-act="addIng2">＋ 加食材</span>';
   }
   function renderEditSteps() {
@@ -239,11 +225,11 @@
     $('#resultArea').innerHTML = '';
   }
   const FRIDGE_ANCHORS = [
-    { x: 24, y: 16 }, { x: 162, y: 6 }, { x: 292, y: 28 }, { x: 404, y: 18 },
-    { x: 70, y: 146 }, { x: 198, y: 126 }, { x: 338, y: 154 }, { x: 438, y: 134 },
-    { x: 18, y: 276 }, { x: 166, y: 250 }, { x: 288, y: 286 }, { x: 430, y: 260 }
+    { x: 24, y: 16 }, { x: 150, y: 8 }, { x: 280, y: 32 }, { x: 392, y: 18 },
+    { x: 70, y: 132 }, { x: 198, y: 116 }, { x: 326, y: 148 }, { x: 424, y: 128 },
+    { x: 18, y: 252 }, { x: 154, y: 232 }, { x: 278, y: 270 }, { x: 406, y: 246 }
   ];
-  const FRIDGE_SPACING = { width: 526, batch: 420, minHeight: 410 };
+  const FRIDGE_SPACING = { width: 500, batch: 360, minHeight: 340 };
 
   function layoutFloat(ings) {
     const list = Array.isArray(ings) ? ings : [];
@@ -254,16 +240,11 @@
       const seed = hashString((ing && ing.name || '') + ':' + i);
       const driftX = (seed % 19) - 9;
       const driftY = ((seed >> 8) % 17) - 8;
-      return {
-        left: anchor.x + driftX,
-        top: anchor.y + batch * FRIDGE_SPACING.batch + driftY
-      };
+      return { left: anchor.x + driftX, top: anchor.y + batch * FRIDGE_SPACING.batch + driftY };
     });
-    const bottom = points.reduce((max, p) => Math.max(max, p.top), 0) + 124;
-    const height = Math.max(FRIDGE_SPACING.minHeight, bottom);
-    return { width: FRIDGE_SPACING.width, height, points };
+    const bottom = points.reduce((max, p) => Math.max(max, p.top), 0) + 108;
+    return { width: FRIDGE_SPACING.width, height: Math.max(FRIDGE_SPACING.minHeight, bottom), points };
   }
-
   function hashString(s) {
     let h = 2166136261;
     for (let i = 0; i < s.length; i++) {
@@ -275,6 +256,8 @@
   function updateFridgeCounts() {
     const n = state.fridgeSel.size;
     $('#goCount').textContent = '已选 ' + n + ' 样 →';
+    const hint = $('#fridgeHint');
+    if (hint) hint.textContent = '';
   }
   async function findDish() {
     if (!state.fridgeSel.size) { toast('先选几样食材吧～'); return; }
@@ -308,6 +291,125 @@
       '<div class="tcard" data-tut="' + t.id + '"><div class="tt">' + esc(t.title) + '</div>' +
       '<div class="row"><span class="src">' + esc(t.source || (t.link ? '链接收藏' : '本地视频')) + '</span>' + (PILL[t.state] || '') + '</div></div>').join('')
       : '<div class="empty"><div class="ico">📚</div>还没有教程<br>粘贴链接或上传视频试试</div>';
+  }
+
+  // ---------- ⑧⑨ 点菜 ----------
+  const orderState = { id: null, dishIds: new Set(), extra: [] }; // extra: 临时手动加的菜名
+
+  function fmtDate(ts) {
+    const d = new Date(ts);
+    const wk = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()];
+    return (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日 · ' + wk;
+  }
+
+  async function renderOrder() {
+    const list = (await DB.all('orders')).sort((a, b) => (a.eatAt || a.createdAt) - (b.eatAt || b.createdAt));
+    const el = $('#orderlist');
+    if (!list.length) {
+      el.innerHTML = '<div class="empty">还没有点菜单<br>点右下角 ＋ 挑几道这周想吃的菜吧</div>';
+      return;
+    }
+    el.innerHTML = list.map((o) => {
+      const items = (o.items || []);
+      const rows = items.map((it) =>
+        '<div class="rcprow"><span>' + esc(it.name) + '</span><span class="qty">×1</span></div>').join('');
+      return '<div class="receipt" data-order="' + o.id + '">' +
+        '<div class="rcphead"><div class="shop">小厨房点菜单</div>' +
+        '<div class="date">' + fmtDate(o.eatAt || o.createdAt) + '</div>' +
+        (o.title ? '<div class="note">' + esc(o.title) + '</div>' : '') + '</div>' +
+        rows +
+        '<div class="rcpfoot"><span class="total">共 ' + items.length + ' 道菜</span>' +
+        '<button class="edit" data-orderedit="' + o.id + '">加菜 / 改单</button></div></div>';
+    }).join('');
+  }
+
+  async function renderOrderNew(id) {
+    const editing = id && id !== 'new';
+    const dishes = (await DB.all('dishes')).filter((d) => d.madeIt !== false);
+    orderState.id = editing ? id : null;
+    orderState.dishIds = new Set();
+    orderState.extra = [];
+    let o = null;
+    if (editing) o = await DB.get('orders', id);
+
+    $('#orderEditTitle').textContent = editing ? '改这一单' : '点一单';
+    $('#orderDel').style.display = editing ? '' : 'none';
+
+    if (o) {
+      (o.items || []).forEach((it) => {
+        if (it.dishId && dishes.some((d) => d.id === it.dishId)) orderState.dishIds.add(it.dishId);
+        else orderState.extra.push(it.name);
+      });
+      $('#orderTitle').value = o.title || '';
+      $('#orderDate').value = toDateInput(o.eatAt || o.createdAt);
+    } else {
+      $('#orderTitle').value = '';
+      $('#orderDate').value = toDateInput(nextWeekend());
+    }
+
+    $('#orderPick').innerHTML = dishes.length ? dishes.map((d) =>
+      '<div class="opk' + (orderState.dishIds.has(d.id) ? ' on' : '') + '" data-orderpick="' + d.id + '">' +
+      (d.cover ? '<img src="' + esc(d.cover) + '">' : '<div style="height:74px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:24px">🍽️</div>') +
+      '<div class="nm">' + esc(d.name) + '</div></div>').join('')
+      : '<div class="muted2">还没有会做的菜，先去厨房记一道，或在下面手动加菜</div>';
+
+    renderOrderChosen(dishes);
+  }
+
+  function toDateInput(ts) {
+    const d = new Date(ts);
+    const p = (n) => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function nextWeekend() {
+    const d = new Date(); const dow = d.getDay();
+    const add = ((6 - dow) + 7) % 7 || 7;
+    d.setDate(d.getDate() + add);
+    return d.getTime();
+  }
+
+  async function renderOrderChosen(dishesArg) {
+    const dishes = dishesArg || (await DB.all('dishes'));
+    const map = {}; dishes.forEach((d) => (map[d.id] = d));
+    const chips = [];
+    orderState.dishIds.forEach((did) => {
+      const d = map[did]; if (d) chips.push('<span class="tg">' + esc(d.name) + ' <span class="x" data-orderunpick="' + did + '">×</span></span>');
+    });
+    orderState.extra.forEach((nm, i) =>
+      chips.push('<span class="tg">' + esc(nm) + ' <span class="x" data-orderunextra="' + i + '">×</span></span>'));
+    const el = $('#orderChosen');
+    el.innerHTML = chips.length ? chips.join('') : '<div class="empty2">还没选菜～ 上面勾几道，或手动加一道</div>';
+    $('#pickCount').textContent = '已选 ' + (orderState.dishIds.size + orderState.extra.length);
+  }
+
+  async function saveOrder() {
+    const dishes = await DB.all('dishes');
+    const map = {}; dishes.forEach((d) => (map[d.id] = d));
+    const items = [];
+    orderState.dishIds.forEach((did) => { const d = map[did]; if (d) items.push({ dishId: did, name: d.name, cover: d.cover || '' }); });
+    orderState.extra.forEach((nm) => items.push({ dishId: '', name: nm, cover: '' }));
+    if (!items.length) { toast('先挑几道菜吧～'); return; }
+    const dv = $('#orderDate').value;
+    const eatAt = dv ? new Date(dv + 'T12:00:00').getTime() : Date.now();
+    const obj = {
+      id: orderState.id || DB.uid(),
+      title: $('#orderTitle').value.trim(),
+      eatAt, items,
+      createdAt: orderState.id ? ((await DB.get('orders', orderState.id)) || {}).createdAt || Date.now() : Date.now()
+    };
+    await DB.put('orders', obj);
+    toast(orderState.id ? '已更新点菜单' : '点菜单已生成 🧾');
+    go('order');
+  }
+  async function delOrder() {
+    if (!orderState.id) return;
+    await DB.del('orders', orderState.id);
+    toast('已删除'); go('order');
+  }
+  function addOrderExtra() {
+    const inp = $('#orderAddName'); const nm = inp.value.trim();
+    if (!nm) { toast('写个菜名吧'); return; }
+    orderState.extra.push(nm); inp.value = ''; renderOrderChosen();
   }
 
   // ---------- 教程解析交互 ----------
@@ -518,6 +620,19 @@
     const tut = t.closest('.tcard[data-tut]');
     if (tut) { const tt = await DB.get('tutorials', tut.dataset.tut); if (tt) showTutorialDetail(tt); return; }
 
+    // 点菜
+    const opk = t.closest('.opk[data-orderpick]');
+    if (opk) { const did = opk.dataset.orderpick; orderState.dishIds.has(did) ? orderState.dishIds.delete(did) : orderState.dishIds.add(did); opk.classList.toggle('on'); renderOrderChosen(); return; }
+    const oun = t.closest('[data-orderunpick]');
+    if (oun) { orderState.dishIds.delete(oun.dataset.orderunpick); const card = $('.opk[data-orderpick="' + oun.dataset.orderunpick + '"]'); if (card) card.classList.remove('on'); renderOrderChosen(); return; }
+    const oux = t.closest('[data-orderunextra]');
+    if (oux) { orderState.extra.splice(+oux.dataset.orderunextra, 1); renderOrderChosen(); return; }
+    if (t.closest('[data-act="orderAddDish"]')) { addOrderExtra(); return; }
+    if (t.closest('[data-act="saveOrder"]')) { saveOrder(); return; }
+    if (t.closest('[data-act="delOrder"]')) { delOrder(); return; }
+    const oedit = t.closest('[data-orderedit]');
+    if (oedit) { go('ordernew', oedit.dataset.orderedit); return; }
+
     // 重置
     if (t.closest('[data-act="reseed"]')) {
       openSheet('<h3>重置示例数据？</h3><p style="color:var(--gray);font-family:var(--kai);margin-bottom:14px">会清空当前所有菜品/教程/想做的，恢复初始示例。</p><button class="confirm" id="doReset">确认重置</button>');
@@ -531,7 +646,7 @@
 
   function showTutorialDetail(t) {
     openSheet('<h3>' + esc(t.title) + '</h3>' +
-      (t.ingredients && t.ingredients.length ? '<div class="ingchips" style="margin-bottom:12px">' + t.ingredients.map((i) => '<span class="ic2">' + ingLabel(i) + '</span>').join('') + '</div>' : '') +
+      (t.ingredients && t.ingredients.length ? '<div class="ingchips" style="margin-bottom:12px">' + t.ingredients.map((i) => '<span class="ic2">' + esc(i) + '</span>').join('') + '</div>' : '') +
       (t.steps && t.steps.length ? '<div class="steps" style="margin-bottom:14px">' + t.steps.map((s, i) => '<div class="stp"><div class="n">' + (i + 1) + '</div><div class="tx">' + esc(s) + '</div></div>').join('') + '</div>' : '<p style="color:var(--gray);font-family:var(--kai)">暂无解析内容</p>') +
       (t.link ? '<a class="confirm" href="' + esc(t.link) + '" target="_blank" style="display:block;text-decoration:none;margin-bottom:10px">打开原链接</a>' : '') +
       '<button class="del" id="tutDel" style="width:100%;border-radius:18px;padding:13px">删除这条教程</button>');
@@ -540,12 +655,69 @@
 
   // change 事件（文件选择）
   document.addEventListener('change', async (e) => {
-    if (e.target.id === 'editCover' && e.target.files[0]) { state.editCover = await fileToDataURL(e.target.files[0]); const up = $('#editUpload'); up.querySelectorAll('img').forEach((n) => n.remove()); const im = document.createElement('img'); im.src = state.editCover; up.appendChild(im); }
+    if ((e.target.id === 'editCover' || e.target.id === 'editCoverLib') && e.target.files[0]) {
+      const file = e.target.files[0]; e.target.value = '';
+      runStickerGen(file);
+    }
     if (e.target.id === 'tutFile' && e.target.files[0]) { handleVideoFile(e.target.files[0]); e.target.value = ''; }
     if (e.target.id === 'editSteps') {}
   });
 
-  const RENDER = { home: renderHome, dish: renderDish, edit: renderEdit, wish: renderWish, fridge: renderFridge, tutorial: renderTutorial };
+  // 点菜：回车快速加菜
+  document.addEventListener('keydown', (e) => {
+    if (e.target.id === 'orderAddName' && e.key === 'Enter') { e.preventDefault(); addOrderExtra(); }
+  });
+
+  // ---------- 拍照 → 生成贴纸（参考范例 App 交互：识别→抠图→描边贴纸） ----------
+  function setEditCover(dataURL) {
+    state.editCover = dataURL;
+    const up = $('#editUpload');
+    up.querySelectorAll('img').forEach((n) => n.remove());
+    const im = document.createElement('img'); im.src = dataURL; up.appendChild(im);
+  }
+  async function runStickerGen(file) {
+    const ov = $('#stickerGen'), frame = $('.sg-frame'), txt = $('#sgText'), bar = $('#sgBar');
+    const raw = $('#sgRaw'), out = $('#sgOut'), useBtn = $('#sgUse'), retryBtn = $('#sgRetry');
+    const rawURL = await fileToDataURL(file);
+    raw.src = rawURL; out.src = '';
+    frame.classList.remove('reveal'); frame.classList.add('scanning');
+    useBtn.style.display = 'none'; retryBtn.style.display = 'none';
+    bar.style.width = '8%'; txt.textContent = '正在识别菜品…';
+    ov.classList.add('show');
+
+    const stageText = {
+      loading_model: '加载识别模型…', segmenting: '找到菜品啦，正在抠图…',
+      compositing: '生成贴纸描边…', repainting: '画风渲染中…', done: '完成'
+    };
+    let result;
+    try {
+      result = await Sticker.fromImage(rawURL, (stage, detail) => {
+        if (stage === 'model_progress' && detail && detail.progress != null) {
+          txt.textContent = '下载识别模型 ' + Math.round(detail.progress) + '%';
+          bar.style.width = (10 + detail.progress * 0.5) + '%';
+        } else if (stageText[stage]) {
+          txt.textContent = stageText[stage];
+          bar.style.width = ({ loading_model: 62, segmenting: 78, compositing: 90, repainting: 95, done: 100 }[stage] || 50) + '%';
+        }
+      });
+    } catch (e) {
+      result = { dataURL: rawURL, state: 'fallback' };
+    }
+    bar.style.width = '100%';
+    out.src = result.dataURL;
+    frame.classList.remove('scanning');
+    setTimeout(() => frame.classList.add('reveal'), 60);
+    txt.textContent = result.state === 'auto'
+      ? (result.usedAI ? '贴纸做好啦 ✨' : '贴纸做好啦，自动抠图描边 ✨')
+      : '已生成（未联网识别，用了裁切贴纸）';
+    useBtn.style.display = ''; retryBtn.style.display = '';
+
+    useBtn.onclick = () => { setEditCover(result.dataURL); ov.classList.remove('show'); };
+    retryBtn.onclick = () => { ov.classList.remove('show'); $('#editCover').click(); };
+  }
+
+
+  const RENDER = { home: renderHome, dish: renderDish, edit: renderEdit, wish: renderWish, fridge: renderFridge, tutorial: renderTutorial, order: renderOrder, ordernew: renderOrderNew };
 
   // ---------- 启动 ----------
   window.addEventListener('hashchange', route);

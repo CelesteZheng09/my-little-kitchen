@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="css/app.css?v=20260619-v6o">
+<link rel="stylesheet" href="css/app.css?v=20260624-v7a">
 </head>
 <body>
 <div id="app">
@@ -21,15 +21,20 @@
   <!-- ① 厨房首页 -->
   <section class="view" data-view="home">
     <div class="topbar">
-      <button class="iconbtn dots" data-act="reseed" title="重置示例">⋮⋮</button>
-      <button class="iconbtn" data-nav="edit" title="记一道菜">＋</button>
+      <div class="ttl">我的小厨房</div>
+      <div class="tbgroup">
+        <button class="iconbtn order-entry" data-nav="order" title="点菜">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6h9M10 12h9M10 18h9"/><path d="M4 6l1.2 1.2L7.6 4.8M4 12l1.2 1.2L7.6 10.8M4 18l1.2 1.2L7.6 16.8"/></svg>
+        </button>
+        <button class="iconbtn" data-act="reseed" title="重置示例">↺</button>
+      </div>
     </div>
     <div class="htitle">
       <div class="big">我的小厨房<span class="muted">。</span><br><span class="muted" id="homeCount">已经会做 0 道</span></div>
     </div>
     <div class="caticons" id="caticons"></div>
     <div class="scrollbody">
-      <div class="collage" id="homeCollage"></div>
+      <div class="dishgrid" id="dishgrid"></div>
       <div class="collage-empty" id="homeEmpty" style="display:none">还没有菜～<br>点右下角 ＋ 记下第一道会做的菜吧</div>
     </div>
     <button class="fab" data-nav="edit">＋</button>
@@ -56,8 +61,13 @@
     <div class="scrollbody">
       <div class="form">
         <label class="uploadbox" id="editUpload">
-          <input type="file" accept="image/*" hidden id="editCover">
-          <div class="ic">📷</div><div class="t">拍张照 / 传张图</div>
+          <input type="file" accept="image/*" capture="environment" hidden id="editCover">
+          <div class="ic">📷</div><div class="t">拍下这道菜 · 自动生成贴纸</div>
+          <div class="sub2">对准菜品拍一张，自动抠图描边</div>
+        </label>
+        <label class="uploadbox alt" id="editUploadLib">
+          <input type="file" accept="image/*" hidden id="editCoverLib">
+          <span>🖼️ 从相册选一张</span>
         </label>
         <div class="field"><div class="fl">菜名</div><input class="inp" id="editName" placeholder="例如：番茄炒蛋"></div>
         <div class="field"><div class="fl">分类</div><div class="catpick" id="editCat"></div></div>
@@ -77,10 +87,10 @@
   <!-- ④ 想做的 -->
   <section class="view" data-view="wish">
     <div class="topbar">
-      <div class="iconbtn dots">⋮⋮</div>
+      <div class="ttl">想做的</div>
       <button class="iconbtn" data-act="addWish">＋</button>
     </div>
-    <div class="wishhead"><div class="big">想做的<span class="muted">。</span></div><div class="sub" id="wishSub">收藏起来慢慢解锁～</div></div>
+    <div class="htitle"><div class="sub" id="wishSub">收藏起来慢慢解锁～</div></div>
     <div class="scrollbody"><div class="wishlist" id="wishlist"></div></div>
     <nav class="tabbar" data-tabbar></nav>
   </section>
@@ -88,37 +98,32 @@
   <!-- ⑤ 冰箱选食材 -->
   <section class="view" data-view="fridge">
     <div class="topbar">
-      <div class="iconbtn dots">⋮⋮</div>
-      <button class="iconbtn" data-act="addIng" title="添加食材">＋</button>
+      <div class="ttl">冰箱</div>
+      <div class="tbgroup">
+        <button class="iconbtn" data-act="clearFridge" title="清空冰箱">↺</button>
+        <button class="iconbtn" data-act="addIng" title="添加食材">＋</button>
+      </div>
     </div>
     <div class="htitle"><div class="big">看看冰箱里<br>能做点啥<span class="muted">。</span></div><div class="sub">点选你想用的食材，下面给你配菜～</div></div>
     <div class="scrollbody">
       <div class="canvas" id="fridgeCanvas"></div>
-      <div class="quickrow">
-        <button class="q" data-act="findDish">快手菜</button>
-        <button class="q" data-act="findDish">15 分钟搞定</button>
-        <button class="q" data-act="clearFridge">清空冰箱</button>
-      </div>
-      <button class="inputbar" data-act="addIng">
-        <span class="ph">还有什么食材？说说看 / 拍一张…</span>
-        <span class="acts"><span class="upload">􀈟 拍照添加</span><span class="send">↑</span></span>
-      </button>
+      <div class="hint" id="fridgeHint" hidden></div>
       <div id="resultArea"></div>
     </div>
-    <button class="gobar" data-act="findDish"><span class="t">找菜</span><span class="go" id="goCount">已选 0 样 →</span></button>
+    <button class="gobar" data-act="findDish"><span class="t">找找能做什么</span><span class="go" id="goCount">已选 0 样 →</span></button>
     <nav class="tabbar" data-tabbar></nav>
   </section>
 
   <!-- ⑥ 教程收藏 -->
   <section class="view" data-view="tutorial">
     <div class="topbar">
-      <div class="ttl">教程库</div>
+      <div class="ttl">教程收藏</div>
       <div style="width:38px"></div>
     </div>
     <div class="pastebar">
       <span class="ic">🔗</span>
-      <input class="inp" id="tutLink" placeholder="粘贴一个教程链接…">
-      <button class="btn" data-act="parseLink">拆解</button>
+      <input class="inp" id="tutLink" placeholder="粘贴抖音 / 小红书 链接…">
+      <button class="btn" data-act="parseLink">解析</button>
     </div>
     <label class="dropzone" id="tutDrop">
       <input type="file" accept="video/*,audio/*" hidden id="tutFile">
@@ -129,6 +134,64 @@
     <nav class="tabbar" data-tabbar></nav>
   </section>
 
+  <!-- ⑧ 点菜 · 订单列表 -->
+  <section class="view" data-view="order">
+    <div class="topbar">
+      <button class="iconbtn" data-back>‹</button>
+      <div class="ttl">点菜</div>
+      <button class="iconbtn" data-nav="ordernew" title="新点一单">＋</button>
+    </div>
+    <div class="htitle">
+      <div class="big">这周想吃点啥<span class="muted">？</span></div>
+      <div class="sub">挑好菜、定好日子，生成一张点菜小票，随时加菜减菜～</div>
+    </div>
+    <div class="scrollbody"><div class="orderlist" id="orderlist"></div></div>
+    <button class="fab" data-nav="ordernew">＋</button>
+    <nav class="tabbar" data-tabbar></nav>
+  </section>
+
+  <!-- ⑨ 点菜 · 新建/编辑订单 -->
+  <section class="view" data-view="ordernew">
+    <div class="topbar">
+      <button class="iconbtn" data-back>‹</button>
+      <div class="ttl" id="orderEditTitle">点一单</div>
+      <button class="iconbtn" id="orderDel" data-act="delOrder" title="删除这单" style="display:none">🗑</button>
+    </div>
+    <div class="scrollbody">
+      <div class="form">
+        <div class="field">
+          <div class="fl">想哪天吃</div>
+          <input class="inp" type="date" id="orderDate">
+        </div>
+        <div class="field">
+          <div class="fl">备注（可选）</div>
+          <input class="inp" id="orderTitle" placeholder="给这一单起个名，如 周末家宴 / 给爸妈做">
+        </div>
+
+        <div class="field">
+          <div class="fl">从已会做的菜里挑 <span class="muted2" id="pickCount">已选 0</span></div>
+          <div class="orderpick" id="orderPick"></div>
+        </div>
+
+        <div class="field">
+          <div class="fl">临时加道新菜</div>
+          <div class="orderadd">
+            <input class="inp" id="orderAddName" placeholder="输入菜名，回车加入这一单">
+            <button class="btn" data-act="orderAddDish">加入</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="fl">这一单的菜</div>
+          <div class="orderchosen" id="orderChosen"></div>
+        </div>
+      </div>
+    </div>
+    <div class="savebar">
+      <button class="save" data-act="saveOrder">生成点菜小票 🧾</button>
+    </div>
+  </section>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -136,10 +199,26 @@
 <!-- 通用底部弹窗 -->
 <div class="modal" id="modal"><div class="sheet" id="sheetBody"></div></div>
 
-<script src="config.js?v=20260619-v6o"></script>
-<script src="js/db.js?v=20260619-v6o"></script>
-<script src="js/match.js?v=20260619-v6o"></script>
-<script src="js/parser.js?v=20260619-v6o"></script>
-<script src="js/app.js?v=20260619-v6o"></script>
+<!-- 拍照生成贴纸 · 全屏生成动画 -->
+<div class="stickergen" id="stickerGen">
+  <div class="sg-stage">
+    <div class="sg-frame">
+      <img id="sgRaw" alt="">
+      <div class="sg-scan"></div>
+      <img id="sgOut" alt="">
+    </div>
+    <div class="sg-text" id="sgText">正在识别菜品…</div>
+    <div class="sg-bar"><i id="sgBar"></i></div>
+    <button class="sg-act" id="sgUse" style="display:none">用这张贴纸 ✓</button>
+    <button class="sg-act ghost" id="sgRetry" style="display:none">重拍一张</button>
+  </div>
+</div>
+
+<script src="config.js?v=20260624-v7a"></script>
+<script src="js/db.js?v=20260624-v7a"></script>
+<script src="js/match.js?v=20260624-v7a"></script>
+<script src="js/parser.js?v=20260624-v7a"></script>
+<script src="js/sticker.js?v=20260624-v7a"></script>
+<script src="js/app.js?v=20260624-v7a"></script>
 </body>
 </html>

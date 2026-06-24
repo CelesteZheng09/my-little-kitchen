@@ -1,9 +1,10 @@
 /* 我的小厨房 · Service Worker（离线缓存外壳 + 本地素材） */
-const CACHE = 'my-kitchen-v18';
+const CACHE = 'my-kitchen-v19';
 const ASSETS = [
-  './', './index.html', './manifest.json', './config.js?v=20260619-v6o',
-  './css/app.css?v=20260619-v6o',
-  './js/db.js?v=20260619-v6o', './js/match.js?v=20260619-v6o', './js/parser.js?v=20260619-v6o', './js/app.js?v=20260619-v6o',
+  './', './index.html', './manifest.json', './config.js?v=20260624-v7a',
+  './css/app.css?v=20260624-v7a',
+  './js/db.js?v=20260624-v7a', './js/match.js?v=20260624-v7a', './js/parser.js?v=20260624-v7a',
+  './js/sticker.js?v=20260624-v7a', './js/app.js?v=20260624-v7a',
   './icons/cat-staple.jpg', './icons/cat-meat.jpg', './icons/cat-veg.jpg',
   './icons/cat-seafood.jpg', './icons/cat-soup.jpg', './icons/cat-cold.jpg', './icons/cat-drink.jpg',
   './icons/dish-fanqie.jpg', './icons/dish-hongshao.jpg', './icons/dish-xilanhua.jpg', './icons/dish-zicai.jpg',
